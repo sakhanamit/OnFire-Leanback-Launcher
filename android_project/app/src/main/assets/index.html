@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>On Fire v1.00 - Liquid Glass TV Launcher</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&family=Playfair+Display:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --card-w: 310px;
+            --card-h: 170px;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none !important;
+            box-sizing: border-box;
+        }
+
+        /* SCROLLABLE 10-FOOT TV VIEWPORT WITH HIDDEN SCROLLBAR */
+        html {
+            width: 1920px;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden !important;
+            position: fixed;
+            inset: 0;
+            /* programmatic smooth scroll enabled */
+        }
+
+        body {
+            width: 1920px;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            overflow: hidden !important;
+            position: fixed;
+            inset: 0;
+            -webkit-font-smoothing: antialiased;
+            background: #000;
+        }
+
+        /* Completely hide scrollbars for clean 10-foot TV experience */
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        /* FIXED BACKGROUND WALLPAPER ENGINE (REMAINS STATIONARY WHILE CONTENT SCROLLS) */
+        .fixed-backdrop {
+            position: fixed;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .gpu-stabilized, .bg-layer, .fixed-backdrop, #main-viewport, #all-apps-grid, .tv-card-rect {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .bg-layer {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity;
+        }
+
+        /* HARDWARE-ACCELERATED TRANSLUCENT GLASS CARDS */
+        .glass-black-card {
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(14, 18, 28, 0.72) 45%, rgba(6, 8, 14, 0.88) 100%);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18),
+                        0 8px 20px rgba(0, 0, 0, 0.55);
+            transition: transform 0.2s ease-out;
+            will-change: transform;
+            transform: translateZ(0);
+            overflow: hidden;
+            contain: paint;
+        }
+
+        /* Top Refractive Highlight Sheen */
+        .glass-black-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(125deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 35%, transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* 6-COLUMN TV APP CARDS (EXACT MATCH TO USER REFERENCE PHOTO) */
+        .tv-card-rect {
+            width: 310px !important;
+            height: 170px !important;
+            min-width: 310px !important;
+            min-height: 170px !important;
+            max-width: 310px !important;
+            max-height: 170px !important;
+            border-radius: 22px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            contain: layout paint !important;
+        }
+
+        /* RECTANGULAR SIZING FOR SETTING TABS */
+        .tv-setting-rect {
+            width: 260px;
+            height: 70px;
+            min-width: 260px;
+            min-height: 70px;
+            max-width: 260px;
+            max-height: 70px;
+        }
+
+        /* BASE FOCUSABLE CARD TRANSITION - 60FPS HARDWARE ACCELERATED */
+        .tv-focusable {
+            transition: transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+            outline: none !important;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        /* CARD FOCUS MATCHING USER REFERENCE IMAGE (SILVER/WHITE SLEEK BORDER + ZOOM) */
+        .tv-focusable.focused {
+            transform: scale(1.05) translateZ(0) !important;
+            border: 2.5px solid rgba(255, 255, 255, 0.95) !important;
+            outline: none !important;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4), 0 14px 30px rgba(0, 0, 0, 0.92) !important;
+            z-index: 40 !important;
+            transition: transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.15s ease-out, border-color 0.15s ease-out !important;
+        }
+
+        /* Subtle ring for header elements */
+        #profile-btn.focused, #btn-weather.focused {
+            transform: scale(1.06) translateZ(0) !important;
+            border: 2px solid rgba(56, 189, 248, 0.8) !important;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5) !important;
+        }
+
+        /* LOGO TRANSITION ON FOCUS */
+        .app-icon-box {
+            transition: transform 0.12s ease-out;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .tv-focusable.focused .app-icon-box {
+            transform: scale(1.08) translateZ(0);
+        }
+
+        /* ========================================================================= */
+        /* CLOCK ENGINE - SHARP, CRISP, ZERO-BLUR WITH 5 MULTIPLE CLOCK FACES       */
+        /* ========================================================================= */
+        .clock-digit {
+            display: inline-block;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            transform: translateZ(0);
+        }
+
+        .clock-colon-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform: translateZ(0);
+        }
+
+        /* 1. IPHONE FACE (DEFAULT): Solid, crisp, sharp TV system font - 2X SCALED */
+        .clock-face-iphone .clock-digit {
+            font-family: 'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 900;
+            font-size: 440px;
+            line-height: 0.85;
+            color: rgba(255, 255, 255, 0.96);
+            -webkit-text-stroke: 2px white;
+            text-shadow: 0 6px 30px rgba(0,0,0,0.6);
+            letter-spacing: -12px;
+            margin: 0;
+        }
+
+        .clock-face-iphone .clock-colon-box {
+            height: 320px;
+            gap: 36px;
+            padding: 0 20px;
+        }
+
+        .clock-face-iphone .colon-dot {
+            width: 36px;
+            height: 36px;
+            min-width: 30px;
+            min-height: 30px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            filter: none;
+        }
+
+        /* 2. SAMSUNG ONE UI FACE: Tall rounded modern aesthetic with Outfit typography */
+        .clock-face-samsung .clock-digit {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 430px;
+            line-height: 0.85;
+            color: #FFFFFF;
+            letter-spacing: -6px;
+            text-shadow: 0 4px 25px rgba(0,0,0,0.55);
+            margin: 0;
+            -webkit-text-stroke: 0px transparent;
+        }
+        .clock-face-samsung .clock-colon-box {
+            height: 300px;
+            gap: 34px;
+            padding: 0 16px;
+        }
+        .clock-face-samsung .colon-dot {
+            width: 26px;
+            height: 26px;
+            min-width: 26px;
+            min-height: 26px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+        }
+
+        /* 3. VIVO ORIGINOS FACE: Modern geometric high-contrast futuristic numerals */
+        .clock-face-vivo .clock-digit {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 420px;
+            line-height: 0.85;
+            color: #FFFFFF;
+            letter-spacing: 2px;
+            text-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+            margin: 0;
+            -webkit-text-stroke: 0px transparent;
+        }
+        .clock-face-vivo .clock-colon-box {
+            height: 280px;
+            gap: 30px;
+            padding: 0 18px;
+        }
+        .clock-face-vivo .colon-dot {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+            border-radius: 5px;
+            background: #38BDF8;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.85);
+        }
+
+        /* 4. IOS EDITORIAL SERIF FACE: Classic elegant luxury Roman serif numerals */
+        .clock-face-ios-serif .clock-digit {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 600;
+            font-size: 410px;
+            line-height: 0.85;
+            color: #FFFFFF;
+            letter-spacing: -3px;
+            text-shadow: 0 4px 28px rgba(0,0,0,0.65);
+            margin: 0 2px;
+            -webkit-text-stroke: 0px transparent;
+        }
+        .clock-face-ios-serif .clock-colon-box {
+            height: 280px;
+            gap: 28px;
+            padding: 0 16px;
+        }
+        .clock-face-ios-serif .colon-dot {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            min-height: 20px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* 5. MINIMAL FACE: Thin font-weight 100, 340px white */
+        .clock-face-minimal .clock-digit {
+            font-family: 'Inter', sans-serif;
+            font-weight: 100;
+            font-size: 410px;
+            line-height: 0.9;
+            color: #FFFFFF;
+            -webkit-text-stroke: 0px transparent;
+            text-shadow: none;
+            filter: none;
+            letter-spacing: -4px;
+            margin: 0 4px;
+        }
+
+        .clock-face-minimal .clock-colon-box {
+            height: 280px;
+            gap: 30px;
+            padding: 0 16px;
+        }
+
+        .clock-face-minimal .colon-dot {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            min-height: 22px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: none;
+            filter: none;
+        }
+
+        /* 3. BOLD FACE: Ultra bold font-weight 900, 360px, letter-spacing -6px */
+        .clock-face-bold .clock-digit {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            font-size: 430px;
+            line-height: 0.85;
+            color: #FFFFFF;
+            letter-spacing: -6px;
+            -webkit-text-stroke: 0px transparent;
+            text-shadow: none;
+            filter: none;
+            margin: 0;
+        }
+
+        .clock-face-bold .clock-colon-box {
+            height: 300px;
+            gap: 32px;
+            padding: 0 18px;
+        }
+
+        .clock-face-bold .colon-dot {
+            width: 26px;
+            height: 26px;
+            min-width: 26px;
+            min-height: 26px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            box-shadow: none;
+            filter: none;
+        }
+
+        /* 4. NEON FACE: Neon green #39FF14, 340px bold, intense glow */
+        .clock-face-neon .clock-digit {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 410px;
+            line-height: 0.88;
+            color: #39FF14;
+            text-shadow: 0 0 30px #39FF14, 0 0 80px #39FF14;
+            -webkit-text-stroke: 0px transparent;
+            filter: none;
+            letter-spacing: 0px;
+            margin: 0 4px;
+        }
+
+        .clock-face-neon .clock-colon-box {
+            height: 280px;
+            gap: 30px;
+            padding: 0 16px;
+        }
+
+        .clock-face-neon .colon-dot {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+            border-radius: 50%;
+            background: #39FF14;
+            box-shadow: 0 0 25px #39FF14;
+            filter: none;
+        }
+
+        /* 5. RETRO FACE: Monospace font, amber #FFA500, 310px digital display */
+        .clock-face-retro .clock-digit {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 700;
+            font-size: 380px;
+            line-height: 0.9;
+            color: #FFA500;
+            text-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+            -webkit-text-stroke: 0px transparent;
+            filter: none;
+            letter-spacing: 6px;
+            margin: 0 6px;
+        }
+
+        .clock-face-retro .clock-colon-box {
+            height: 260px;
+            gap: 28px;
+            padding: 0 16px;
+        }
+
+        .clock-face-retro .colon-dot {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            min-height: 22px;
+            border-radius: 4px;
+            background: #FFA500;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.7);
+            filter: none;
+        }
+
+        /* TOP-RIGHT DROPDOWN LIST ITEMS (CLEAN, NO BACKGROUND CARDS, NO BORDER) */
+        .dropdown-row {
+            background: transparent;
+            transition: background 0.15s ease-out, transform 0.15s ease-out;
+            outline: none !important;
+            border: none !important;
+        }
+        .dropdown-row.focused {
+            transform: scale(1.02) translateZ(0) !important;
+            background: #2563eb !important; /* Clean solid blue highlight */
+            color: #ffffff !important;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
+            border: none !important;
+            border-color: transparent !important;
+            outline: none !important;
+        }
+        .dropdown-row.focused * {
+            color: #ffffff !important;
+        }
+
+        /* Active highlight for Settings Modal pills */
+        .setting-opt-active {
+            border-color: #38BDF8 !important;
+            background: rgba(56, 189, 248, 0.28) !important;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.4) !important;
+        }
+
+        /* FLOATING APP DOCK CONTAINER (AS SEEN IN IMAGE 1 & 3) */
+        #dock-container {
+            background: rgba(18, 20, 28, 0.75);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border-radius: 36px;
+            padding: 18px 28px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+            transition: all 0.3s ease-out;
+        }
+
+
+
+        /* SUBMERGED CLOCK WATER REFLECTION (AS SEEN IN IMAGE 3) */
+        body.theme-submerged #iphone-clock-container .clock-digit {
+            background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 46%, rgba(130, 245, 225, 0.95) 54%, rgba(64, 210, 185, 0.85) 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.4) !important;
+            filter: drop-shadow(0 15px 25px rgba(45, 212, 191, 0.45)) !important;
+        }
+        body.theme-submerged #clock-colon .colon-dot {
+            background: linear-gradient(180deg, #FFFFFF 0%, #6EE7B7 100%) !important;
+            box-shadow: 0 0 15px rgba(110, 231, 183, 0.7) !important;
+        }
+
+        /* SUNSET MINIMAL THEME LAYOUT (AS SEEN IN IMAGE 2) */
+        body.theme-sunset #hero-center-box {
+            display: none !important;
+        }
+        body.theme-sunset #top-right-header-clock {
+            display: flex !important;
+        }
+        body.theme-sunset #dock-container {
+            border-radius: 24px;
+            background: rgba(15, 18, 25, 0.65);
+        }
+        #top-right-header-clock {
+            display: none;
+        }
+
+        
+        /* BOTTOM APPS DRAWER WITH TRANSITION & FADE BEHIND CLOCK/WEATHER WITHOUT BLUR */
+        #apps-drawer {
+            position: fixed;
+            inset: 0;
+            width: 1920px;
+            height: 1080px;
+            z-index: 15;
+            pointer-events: none;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out;
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,0.65) 28%, rgba(0,0,0,0.15) 33%, rgba(0,0,0,0) 36%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,0.65) 28%, rgba(0,0,0,0.15) 33%, rgba(0,0,0,0) 36%, rgba(0,0,0,0) 100%);
+        }
+        #apps-drawer.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #apps-drawer-scroll {
+            width: 1920px;
+            height: 1080px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 832px;
+            padding-bottom: 80px;
+            box-sizing: border-box;
+        }
+
+        /* Spin Animation for RAM Cleaner */
+        @keyframes ramSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-ram-spin {
+            animation: ramSpin 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="text-white select-none relative">
+
+    <!-- FIXED MULTI-WALLPAPER BACKGROUND ENGINE (CROSS-FADE ANIMATION) -->
+    <div class="fixed-backdrop">
+        <div id="bg-layer-1" class="bg-layer opacity-100" style="background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div id="bg-layer-2" class="bg-layer opacity-0" style="background-image: url('');"></div>
+        <!-- Gradient Overlay: Keeps middle transparent so wallpaper is vibrant -->
+        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/85 pointer-events-none"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: WEATHER LOCATION MODAL (PRESERVED EXACTLY)                      -->
+    <!-- ========================================================================= -->
+    <div id="weather-modal" onclick="if (event.target === this) closeWeatherModal();" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-150">
+        <div id="weather-box" class="glass-black-card p-8 max-w-lg w-full mx-4 text-center transform scale-95 transition-all duration-150 border-2 border-white/40 shadow-2xl">
+            <div class="w-16 h-16 bg-blue-500/25 border border-blue-300/40 rounded-2xl mx-auto flex items-center justify-center text-3xl text-blue-300 mb-4 shadow-lg">
+                <i class="fa-solid fa-cloud-sun-rain"></i>
+            </div>
+            <h3 class="text-2xl font-black text-white mb-1">Google Weather Location</h3>
+            <p class="text-xs text-gray-200 mb-5 font-semibold">Select your city for real-time live weather & forecasts</p>
+            
+            <!-- Quick City Pills -->
+            <div id="city-pills" class="grid grid-cols-3 gap-2.5 mb-5">
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Deoband">Deoband</button>
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="New Delhi">New Delhi</button>
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Mumbai">Mumbai</button>
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Bengaluru">Bengaluru</button>
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Dubai">Dubai</button>
+                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="London">London</button>
+            </div>
+
+            <!-- Custom Input -->
+            <div class="flex items-center space-x-2.5 mb-5">
+                <input id="weather-input" type="text" placeholder="Type city name..." class="tv-focusable modal-item flex-1 py-3 px-4 rounded-xl bg-black/60 border-2 border-white/40 text-white text-sm placeholder-gray-400 focus:border-blue-400 font-bold">
+                <button id="btn-save-weather" class="tv-focusable modal-item py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white text-sm font-extrabold rounded-xl transition-all shadow-lg">Save</button>
+            </div>
+
+            <!-- Cancel / Back Button -->
+            <button id="weather-close" onclick="closeWeatherModal();" class="tv-focusable modal-item w-full py-3.5 glass-black-card border-2 border-white/40 text-white hover:border-white text-sm font-black rounded-xl transition-all shadow-xl flex items-center justify-center space-x-2 cursor-pointer">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>Cancel / Back to Home</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TOP-RIGHT LIST-STYLE SETTINGS MENU (APPLE TV / FIRE TV STYLE)             -->
+    <!-- ========================================================================= -->
+    <div id="launcher-settings-modal" onclick="if (event.target === this) closeLauncherSettings();" class="fixed inset-0 z-50 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div id="launcher-settings-box" class="absolute top-6 right-10 w-[580px] max-h-[980px] bg-[#0c101a]/50 backdrop-blur-xl border-2 border-white/20 rounded-3xl p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-y-auto transform translate-y-[-10px] scale-95 transition-all duration-200">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shadow">
+                        <svg viewBox="0 0 100 100" class="h-6 w-6 text-white">
+                            <circle cx="50" cy="50" r="18" fill="white" opacity="0.95"/>
+                            <circle cx="50" cy="50" r="28" fill="none" stroke="white" stroke-width="5" opacity="0.7" stroke-dasharray="12 8"/>
+                            <circle cx="50" cy="50" r="38" fill="none" stroke="white" stroke-width="3" opacity="0.4" stroke-dasharray="8 10"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-4xl font-black text-white tracking-wide">Settings</h3>
+                        <p class="text-lg font-bold text-sky-400 mt-1">Launcher & Fire TV Stick System Settings</p>
+                    </div>
+                </div>
+                <button onclick="closeLauncherSettings();" class="text-base font-black text-gray-200 bg-white/20 px-5 py-2.5 rounded-2xl hover:bg-white/20">
+                    ✕ ESC / Back
+                </button>
+            </div>
+
+            <!-- List Menu Body -->
+            <div id="settings-menu-list" class="space-y-4">
+                
+                <!-- GROUP 1: FIRE TV STICK SETTINGS -->
+                <div>
+                    <span class="block text-xl font-black uppercase tracking-wider text-sky-400 mt-4 mb-3 px-2">
+                        <i class="fa-solid fa-fire mr-1.5 text-amber-400"></i>Fire TV Stick System Settings
+                    </span>
+                    <div class="space-y-1">
+                        <!-- 1. All Settings (Mapped to Applications & Storage Shortcut) -->
+                        <div tabindex="0" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="all_fire_tv_settings">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-gear text-sky-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">All Fire TV Settings</h4>
+                                    <p class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Network, Display, Apps, Remotes & Preferences</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                        </div>
+
+
+
+                        <!-- 3. Network & Wi-Fi -->
+                        <div tabindex="0" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-intent="android.settings.WIFI_SETTINGS">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-wifi text-emerald-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">Network & Wi-Fi</h4>
+                                    <p class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Wi-Fi connection & speed</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                        </div>
+
+                        <!-- 4. My Fire TV -->
+                        <div tabindex="0" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-intent="android.settings.DEVICE_INFO_SETTINGS">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-circle-info text-amber-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">My Fire TV</h4>
+                                    <p class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">About, restart & developer</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GROUP 2: LAUNCHER SETTINGS -->
+                <div>
+                    <span class="block text-xl font-black uppercase tracking-wider text-sky-400 mt-4 mb-3 px-2">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-pink-400"></i>Launcher Customization
+                    </span>
+                    <div class="space-y-1">
+                        <!-- 8. Clear RAM -->
+                        <div tabindex="0" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="clear_ram">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-bolt text-emerald-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-emerald-300 leading-tight">Clear RAM & Cache</h4>
+                                    <p class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Free background memory instantly</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-black uppercase bg-emerald-500/25 text-emerald-300 px-5 py-2 rounded-xl">Boost</span>
+                        </div>
+
+                        <!-- 9. Wallpaper Theme (Cycle) -->
+                        <div tabindex="0" id="dropdown-theme-row" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="toggle_theme">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-palette text-pink-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">Theme & Wallpaper</h4>
+                                    <p id="dropdown-theme-label" class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Alpine Glass</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-extrabold text-gray-200 bg-white/20 px-5 py-2 rounded-xl">Cycle</span>
+                        </div>
+
+                        <!-- 10. Clock Face (Cycle) -->
+                        <div tabindex="0" id="dropdown-clock-row" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="toggle_clock">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-clock text-cyan-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">Clock Face Style</h4>
+                                    <p id="dropdown-clock-label" class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">iPhone Classic (2X Scale)</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-extrabold text-gray-200 bg-white/20 px-5 py-2 rounded-xl">Cycle</span>
+                        </div>
+
+                        <!-- 11. Wallpaper Speed (Cycle) -->
+                        <div tabindex="0" id="dropdown-speed-row" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="toggle_speed">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-image text-yellow-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">Wallpaper Change Speed</h4>
+                                    <p id="dropdown-speed-label" class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Every 5 Minutes (Normal)</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-extrabold text-gray-200 bg-white/20 px-5 py-2 rounded-xl">Cycle</span>
+                        </div>
+
+                        <!-- 12. Refresh Apps -->
+                        <div tabindex="0" class="tv-focusable modal-setting-item dropdown-row flex items-center justify-between px-7 py-6 rounded-2xl cursor-pointer text-gray-200 mb-3.5 min-h-[105px]" data-action="refresh_apps">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-arrows-rotate text-violet-400 text-4xl w-12 text-center"></i>
+                                <div>
+                                    <h4 class="text-[26px] font-black text-white leading-tight">Rescan Installed Apps</h4>
+                                    <p class="text-[17px] font-bold text-gray-300 mt-1.5 leading-snug">Reload all apps from Fire TV OS</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-rotate text-xs text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CLOSE BUTTON -->
+                <div class="pt-2">
+                    <button id="modal-settings-close" onclick="closeLauncherSettings();" class="tv-focusable modal-setting-item dropdown-row w-full py-5 text-white hover:text-white text-xl font-black rounded-2xl transition-all flex items-center justify-center space-x-2 cursor-pointer bg-white/15 hover:bg-white/25 mt-2">
+                        <i class="fa-solid fa-arrow-left text-xs"></i>
+                        <span>Close Settings</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- SCREEN 1: LARGE CRISP CLOCK + INTEGRATED WEATHER + RECENT APPS            -->
+    <!-- ========================================================================= -->
+        <!-- ========================================================================= -->
+    <!-- SCREEN 1: CLOCK & WEATHER (PERMANENTLY FIXED IN PLACE)                   -->
+    <!-- ========================================================================= -->
+        <!-- ========================================================================= -->
+    <!-- SCREEN 1: CLOCK & WEATHER (DEAD CENTER IN THE MIDDLE OF THE SCREEN)      -->
+    <!-- ========================================================================= -->
+    <section id="hero-section" class="fixed inset-0 w-[1920px] h-[1080px] pointer-events-none z-25 overflow-hidden">
+        
+        <!-- TOP HEADER: BRAND PROFILE (LEFT) & STATUS (RIGHT) -->
+        <header class="absolute top-6 left-14 right-14 flex justify-between items-center z-30 pointer-events-auto">
+            <div class="flex items-center space-x-3.5">
+                <div id="profile-btn" tabindex="0" class="tv-focusable glass-black-card h-12 px-5 flex items-center space-x-3 cursor-pointer group" data-action="profile">
+                    <div class="w-7 h-7 rounded-lg overflow-hidden bg-black/60 flex items-center justify-center border border-white/30 shrink-0">
+                        <img id="app-logo-img" src="logo.png" class="w-7 h-7 object-cover" onerror="this.style.display='none'; document.getElementById('logo-fallback-icon').style.display='block';">
+                        <i id="logo-fallback-icon" class="fa-solid fa-fire text-amber-400 text-sm hidden"></i>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-black text-white tracking-wide">ON FIRE</span>
+                        <span class="text-[9px] font-black uppercase bg-red-600 px-1.5 py-0.2 rounded text-white">v1.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3.5">
+                <div id="top-right-header-clock" class="flex flex-col items-end text-right mr-2">
+                    <div class="flex items-baseline space-x-1.5">
+                        <span id="top-right-hours-mins" class="text-5xl font-black text-white tracking-tight drop-shadow-md">8:47</span>
+                        <span id="top-right-ampm" class="text-xl font-bold text-white/90">am</span>
+                    </div>
+                    <span id="top-right-date" class="text-xs font-bold text-white/85 mt-0.5">Tuesday 27 October</span>
+                </div>
+
+                <div class="glass-black-card h-12 px-5 flex items-center space-x-3 text-xs font-bold text-gray-200 rounded-full">
+                    <span class="flex items-center space-x-1.5 text-emerald-400">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="tv-platform-badge">Fire OS 7.7.1</span>
+                    </span>
+                    <span class="text-white/30">|</span>
+                    <span class="text-sky-200 font-extrabold">1080p 60Hz</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- DEAD-CENTER MIDDLE CLOCK BOX: DATE + MASSIVE CLOCK + WEATHER WIDGET -->
+        <div id="hero-center-box" class="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex flex-col items-center justify-center text-center pointer-events-none z-25 my-0">
+            
+            <!-- 1. DATE -->
+            <div class="w-full flex justify-center items-center mb-1 pointer-events-none">
+                <span id="iphone-date" class="text-3xl font-extrabold text-white/90 tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)]">
+                    Tuesday 27 October
+                </span>
+            </div>
+
+            <!-- 2. MASSIVE SHARP CLOCK (CENTERED IN THE MIDDLE OF THE SCREEN) -->
+            <div id="iphone-clock-container" class="clock-face-iphone flex items-center justify-center leading-none select-none my-0">
+                <span id="iphone-hours" class="clock-digit">08</span>
+                <div id="clock-colon" class="clock-colon-box">
+                    <span class="colon-dot"></span>
+                    <span class="colon-dot"></span>
+                </div>
+                <span id="iphone-minutes" class="clock-digit">47</span>
+            </div>
+
+            <!-- 3. GOOGLE WEATHER WIDGET (CENTERED BELOW CLOCK) -->
+            <div id="weather-fixed-bar" class="flex items-center justify-center pointer-events-auto mt-5 mb-2">
+                <button id="btn-weather" tabindex="0" class="tv-focusable inline-flex items-center space-x-4 px-8 py-3 rounded-full glass-black-card text-base font-bold text-white border-2 border-white/30 cursor-pointer shadow-2xl hover:border-white transition-all" data-action="weather">
+                    <svg class="w-7 h-7 shrink-0 drop-shadow" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.12C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.59H1.27C.46 8.2.005 10.04.005 12c0 1.96.46 3.8 1.265 5.41l4.01-3.12z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.27 6.59l4.01 3.12c.95-2.83 3.6-4.96 6.72-4.96z"/>
+                    </svg>
+                    <span id="weather-temp" class="text-white font-black text-2xl drop-shadow">24°C</span>
+                    <span id="weather-desc-text" class="text-sky-100 font-extrabold text-base drop-shadow">Sunny</span>
+                    <i id="weather-icon" class="fa-solid fa-cloud text-amber-300 text-xl drop-shadow"></i>
+                    <span class="text-white/30 text-base">•</span>
+                    <span class="flex items-center space-x-2 text-sky-200">
+                        <i class="fa-solid fa-location-dot text-red-400 text-sm"></i>
+                        <span id="weather-city" class="text-base font-black">Deoband</span>
+                    </span>
+                    <span class="text-white/30 text-base">•</span>
+                    <span id="weather-humidity-text" class="text-sm font-bold text-gray-200">67% Hum</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- APPLICATION SECTION: FADES BEHIND WEATHER & CLOCK WITHOUT BLUR           -->
+    <!-- ========================================================================= -->
+    <div id="apps-drawer">
+        <div id="apps-drawer-scroll">
+            <div style="width: 1694px; margin: 0 auto;">
+                <div class="flex justify-between items-center mb-3 px-1">
+                    <h2 class="text-sm font-black tracking-wider uppercase text-gray-200 flex items-center space-x-2">
+                        <i class="fa-solid fa-shapes text-sky-400 text-sm"></i>
+                        <span>Applications</span>
+                    </h2>
+                    <span class="text-xs text-sky-300 font-extrabold bg-white/10 px-3.5 py-1 rounded-full border border-white/15">
+                        Press UP to hide apps • 5 Cards Per Row
+                    </span>
+                </div>
+                
+                <div id="all-apps-grid" style="display: grid; grid-template-columns: repeat(5, 310px); column-gap: 36px; row-gap: 26px; justify-content: center; width: 1694px; margin: 0 auto;">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. LIGHTWEIGHT ZERO-DELAY TV SOUND ENGINE ---
+        let audioCtx = null;
+        function playTvSound(type = 'focus') {
+            try {
+                if (!audioCtx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) audioCtx = new AudioContextClass();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                
+                const now = audioCtx.currentTime;
+                if (type === 'focus') {
+                    osc.frequency.setValueAtTime(440, now);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.015);
+                    osc.start(now);
+                    osc.stop(now + 0.015);
+                } else if (type === 'select') {
+                    osc.frequency.setValueAtTime(660, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.035);
+                    osc.start(now);
+                    osc.stop(now + 0.035);
+                }
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+            } catch (e) {}
+        }
+
+        // --- 2. CONFIGURABLE MULTI-WALLPAPER BACKGROUND ENGINE ---
+        const wallpaperList = [
+            'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80', // Yosemite Valley Lake
+            'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=80', // Misty Mountain Pines
+            'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1920&q=80', // Alpine Lake Reflection
+            'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1920&q=80', // Golden Autumn Forest
+            'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1920&q=80', // Sunbeams in Forest
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', // Sunset Ocean Beach
+            'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80', // Deep Space Earth Nebula
+            'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1920&q=80', // Starry Sky Mountain Peak
+            'https://images.unsplash.com/photo-1439853941329-a99ce049f002?auto=format&fit=crop&w=1920&q=80', // Glacier Turquoise Lake
+            'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1920&q=80', // Neon Cyber Dusk City
+            'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80', // Majestic Sunset Peaks
+            'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1920&q=80'  // Golden Desert Sunset
+        ];
+        let currentWallpaperIndex = 0;
+        let activeLayer = 1;
+        let wallpaperTimer = null;
+        let currentWallpaperSpeed = localStorage.getItem('onfire_wallpaper_speed') || 'normal';
+
+        // --- 2. THEME ENGINE (ALPINE GLASS, SUNSET MINIMAL, SUBMERGED GLACIER, MIDNIGHT OLED) ---
+        const themeWallpapers = {
+            'alpine': 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80',
+            'sunset': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80',
+            'submerged': 'https://images.unsplash.com/photo-1439853941329-a99ce049f002?auto=format&fit=crop&w=1920&q=80',
+            'midnight': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1920&q=80'
+        };
+
+        let currentTheme = localStorage.getItem('onfire_theme') || 'alpine';
+
+        function applyTheme(theme) {
+            const valid = ['alpine', 'sunset', 'submerged', 'midnight'];
+            if (!valid.includes(theme)) theme = 'alpine';
+            currentTheme = theme;
+            localStorage.setItem('onfire_theme', theme);
+
+            // Apply body classes
+            document.body.className = 'text-white select-none relative theme-' + theme;
+
+            // Set corresponding theme wallpaper
+            const wallpaperUrl = themeWallpapers[theme];
+            const layer1 = document.getElementById('bg-layer-1');
+            if (layer1 && wallpaperUrl) {
+                layer1.style.backgroundImage = `url('${wallpaperUrl}')`;
+            }
+
+            // Update active state on theme buttons in settings
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                if (btn.getAttribute('data-theme') === theme) {
+                    btn.classList.add('setting-opt-active');
+                } else {
+                    btn.classList.remove('setting-opt-active');
+                }
+            });
+        }
+
+        function cycleWallpaper() {
+            currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperList.length;
+            const nextUrl = wallpaperList[currentWallpaperIndex];
+            const nextLayerNum = activeLayer === 1 ? 2 : 1;
+            const currentLayerEl = document.getElementById(`bg-layer-${activeLayer}`);
+            const nextLayerEl = document.getElementById(`bg-layer-${nextLayerNum}`);
+
+            if (currentLayerEl && nextLayerEl) {
+                const img = new Image();
+                img.onload = () => {
+                    nextLayerEl.style.backgroundImage = `url('${nextUrl}')`;
+                    nextLayerEl.classList.remove('opacity-0');
+                    nextLayerEl.classList.add('opacity-100');
+                    currentLayerEl.classList.remove('opacity-100');
+                    currentLayerEl.classList.add('opacity-0');
+                    activeLayer = nextLayerNum;
+                };
+                img.src = nextUrl;
+            }
+        }
+
+        function getWallpaperSpeedInterval(speed) {
+            if (speed === 'slow') return 600000; // 10 minutes
+            if (speed === 'fast') return 60000;  // 1 minute
+            return 300000;                       // 5 minutes (normal)
+        }
+
+        function applyWallpaperSpeed(speed) {
+            const valid = ['slow', 'normal', 'fast'];
+            if (!valid.includes(speed)) speed = 'normal';
+            currentWallpaperSpeed = speed;
+            localStorage.setItem('onfire_wallpaper_speed', speed);
+
+            if (wallpaperTimer) clearInterval(wallpaperTimer);
+            wallpaperTimer = setInterval(cycleWallpaper, getWallpaperSpeedInterval(speed));
+
+            document.querySelectorAll('.wallpaper-speed-btn').forEach(btn => {
+                if (btn.getAttribute('data-speed') === speed) {
+                    btn.classList.add('setting-opt-active');
+                } else {
+                    btn.classList.remove('setting-opt-active');
+                }
+            });
+        }
+
+        // --- 3. CLOCK FACES ENGINE (SAMSUNG ONE UI, VIVO ORIGINOS, IOS BOLD, IOS SERIF, MINIMAL, NEON) ---
+        let currentClockFace = localStorage.getItem('onfire_clock_face') || 'iphone';
+
+        function applyClockFace(face) {
+            const valid = ['iphone', 'samsung', 'vivo', 'ios-serif', 'minimal', 'neon', 'bold', 'retro'];
+            if (!valid.includes(face)) face = 'iphone';
+            currentClockFace = face;
+            localStorage.setItem('onfire_clock_face', face);
+
+            const container = document.getElementById('iphone-clock-container');
+            if (container) {
+                valid.forEach(f => container.classList.remove('clock-face-' + f));
+                container.classList.add('clock-face-' + face);
+            }
+
+            document.querySelectorAll('.clock-face-btn').forEach(btn => {
+                if (btn.getAttribute('data-face') === face) {
+                    btn.classList.add('setting-opt-active');
+                } else {
+                    btn.classList.remove('setting-opt-active');
+                }
+            });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let rawHours = now.getHours();
+            const ampm = rawHours >= 12 ? 'pm' : 'am';
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            let hours12 = rawHours % 12 || 12;
+            const hours12Str = hours12.toString().padStart(2, '0');
+
+            const hoursEl = document.getElementById('iphone-hours');
+            const minutesEl = document.getElementById('iphone-minutes');
+            const dateEl = document.getElementById('iphone-date');
+
+            if (hoursEl && hoursEl.innerText !== hours12Str) hoursEl.innerText = hours12Str;
+            if (minutesEl && minutesEl.innerText !== minutes) minutesEl.innerText = minutes;
+
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const dayName = days[now.getDay()];
+            const dateNum = now.getDate();
+            const monthName = months[now.getMonth()];
+            const fullDate = `${dayName}, ${monthName} ${dateNum}`;
+
+            if (dateEl && dateEl.innerText !== fullDate) dateEl.innerText = fullDate;
+
+            // Top-Right Clock (Sunset Minimal Theme)
+            const trHoursMins = document.getElementById('top-right-hours-mins');
+            const trAmpm = document.getElementById('top-right-ampm');
+            const trDate = document.getElementById('top-right-date');
+            if (trHoursMins) trHoursMins.innerText = `${hours12}:${minutes}`;
+            if (trAmpm) trAmpm.innerText = ampm;
+            if (trDate) trDate.innerText = `${dayName} ${dateNum} ${monthName}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 4. CARD SIZING ENGINE (TV FULL CARD SIZING 310x175) ---
+        let currentCardSize = localStorage.getItem('onfire_card_size') || 'normal';
+
+        function applyCardSize(size) {
+            currentCardSize = size;
+            localStorage.setItem('onfire_card_size', size);
+            document.documentElement.style.setProperty('--card-w', '310px');
+            document.documentElement.style.setProperty('--card-h', '175px');
+        }
+
+        // --- 5. LIVE GOOGLE WEATHER SERVICE ENGINE (PRESERVED) ---
+        let currentWeatherCity = localStorage.getItem('onfire_weather_city') || 'Deoband';
+        let currentWeatherTemp = localStorage.getItem('onfire_weather_temp') || '24°C';
+        let currentWeatherDesc = localStorage.getItem('onfire_weather_desc') || 'Overcast';
+        let currentWeatherHumidity = localStorage.getItem('onfire_weather_humidity') || '67% Hum';
+
+        const weatherTemp = document.getElementById('weather-temp');
+        const weatherCity = document.getElementById('weather-city');
+        const weatherDescText = document.getElementById('weather-desc-text');
+        const weatherHumidityText = document.getElementById('weather-humidity-text');
+        const weatherIcon = document.getElementById('weather-icon');
+
+        function applyWeatherUI(city, temp, desc, humidity, iconClass) {
+            if (weatherCity) weatherCity.innerText = city;
+            if (weatherTemp) weatherTemp.innerText = temp;
+            if (weatherDescText) weatherDescText.innerText = desc;
+            if (weatherHumidityText) weatherHumidityText.innerText = humidity;
+            if (weatherIcon && iconClass) weatherIcon.className = iconClass;
+
+            localStorage.setItem('onfire_weather_city', city);
+            localStorage.setItem('onfire_weather_temp', temp);
+            localStorage.setItem('onfire_weather_desc', desc);
+            localStorage.setItem('onfire_weather_humidity', humidity);
+        }
+
+        window.onGoogleWeatherLoaded = function(jsonResult, resolvedCity) {
+            try {
+                const data = (typeof jsonResult === 'string') ? JSON.parse(jsonResult) : jsonResult;
+                if (data && data.current_condition && data.current_condition.length > 0) {
+                    const current = data.current_condition[0];
+                    const temp = current.temp_C + "°C";
+                    const desc = (current.weatherDesc && current.weatherDesc[0]) ? current.weatherDesc[0].value.trim() : "Clear";
+                    const humidity = (current.humidity || "65") + "% Hum";
+
+                    let iconClass = "fa-solid fa-cloud-sun text-amber-300 text-3xl md:text-4xl drop-shadow";
+                    const d = desc.toLowerCase();
+                    if (d.includes('rain') || d.includes('drizzle') || d.includes('shower')) {
+                        iconClass = "fa-solid fa-cloud-rain text-blue-400 text-3xl md:text-4xl drop-shadow";
+                    } else if (d.includes('thunder') || d.includes('lightning') || d.includes('storm')) {
+                        iconClass = "fa-solid fa-cloud-bolt text-amber-400 text-3xl md:text-4xl drop-shadow";
+                    } else if (d.includes('snow') || d.includes('ice')) {
+                        iconClass = "fa-solid fa-snowflake text-sky-200 text-3xl md:text-4xl drop-shadow";
+                    } else if (d.includes('cloud') || d.includes('overcast')) {
+                        iconClass = "fa-solid fa-cloud text-gray-300 text-3xl md:text-4xl drop-shadow";
+                    } else if (d.includes('sun') || d.includes('clear')) {
+                        iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                    }
+
+                    applyWeatherUI(resolvedCity || currentWeatherCity, temp, desc, humidity, iconClass);
+                }
+            } catch (e) {}
+        };
+
+        function fetchLiveWeather(city) {
+            if (window.Android && typeof window.Android.fetchWeather === 'function') {
+                window.Android.fetchWeather(city);
+            }
+            fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+                .then(res => res.json())
+                .then(data => window.onGoogleWeatherLoaded(data, city))
+                .catch(() => {});
+        }
+
+        applyWeatherUI(currentWeatherCity, currentWeatherTemp, currentWeatherDesc, currentWeatherHumidity, "fa-solid fa-cloud text-gray-300 text-3xl md:text-4xl drop-shadow");
+        fetchLiveWeather(currentWeatherCity);
+        setInterval(() => fetchLiveWeather(currentWeatherCity), 900000); // 15 mins
+
+        // Weather Modal Event Handlers
+        const weatherModal = document.getElementById('weather-modal');
+        const weatherBox = document.getElementById('weather-box');
+        const cityPills = document.querySelectorAll('#city-pills button');
+        const weatherInput = document.getElementById('weather-input');
+        const btnSaveWeather = document.getElementById('btn-save-weather');
+        const weatherClose = document.getElementById('weather-close');
+        let isWeatherModalOpen = false;
+        let currentWeatherModalIndex = 0;
+
+        function setWeatherModalFocus(index) {
+            const modalItems = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
+            if (!modalItems.length) return;
+            modalItems.forEach(item => item.classList.remove('focused'));
+            currentWeatherModalIndex = Math.max(0, Math.min(index, modalItems.length - 1));
+            const el = modalItems[currentWeatherModalIndex];
+            if (el) {
+                el.classList.add('focused');
+                el.focus({ preventScroll: true });
+                playTvSound('focus');
+            }
+        }
+
+        window.openWeatherModal = function() {
+            isWeatherModalOpen = true;
+            weatherModal.classList.remove('opacity-0', 'pointer-events-none');
+            weatherBox.classList.remove('scale-95');
+            weatherBox.classList.add('scale-100');
+            setTimeout(() => {
+                setWeatherModalFocus(0);
+            }, 50);
+        };
+
+        window.closeWeatherModal = function() {
+            isWeatherModalOpen = false;
+            weatherModal.classList.add('opacity-0', 'pointer-events-none');
+            weatherBox.classList.remove('scale-100');
+            weatherBox.classList.add('scale-95');
+            document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            const btnW = document.getElementById('btn-weather');
+            if (btnW) setFocus(btnW);
+        };
+
+        cityPills.forEach((btn, idx) => {
+            btn.addEventListener('click', () => {
+                const city = btn.getAttribute('data-city');
+                currentWeatherCity = city;
+                fetchLiveWeather(city);
+                closeWeatherModal();
+            });
+            btn.addEventListener('focus', () => {
+                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+                btn.classList.add('focused');
+                currentWeatherModalIndex = idx;
+            });
+        });
+
+        if (weatherInput) {
+            weatherInput.addEventListener('focus', () => {
+                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+                weatherInput.classList.add('focused');
+                currentWeatherModalIndex = 6;
+            });
+        }
+
+        if (btnSaveWeather) {
+            btnSaveWeather.addEventListener('click', () => {
+                const val = weatherInput ? weatherInput.value.trim() : '';
+                if (val) {
+                    currentWeatherCity = val;
+                    fetchLiveWeather(val);
+                    if (weatherInput) weatherInput.value = '';
+                }
+                closeWeatherModal();
+            });
+            btnSaveWeather.addEventListener('focus', () => {
+                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+                btnSaveWeather.classList.add('focused');
+                currentWeatherModalIndex = 7;
+            });
+        }
+
+        if (weatherClose) {
+            weatherClose.addEventListener('click', closeWeatherModal);
+            weatherClose.addEventListener('focus', () => {
+                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+                weatherClose.classList.add('focused');
+                currentWeatherModalIndex = 8;
+            });
+        }
+
+        // --- 6. TOP-RIGHT LIST-STYLE SETTINGS MENU ENGINE ---
+        const launcherSettingsModal = document.getElementById('launcher-settings-modal');
+        const launcherSettingsBox = document.getElementById('launcher-settings-box');
+        let isLauncherSettingsOpen = false;
+        let currentSettingsIndex = 0;
+
+        const themeCycleList = ['alpine', 'sunset', 'submerged', 'midnight'];
+        const themeLabels = {
+            'alpine': 'Alpine Glass (Default)',
+            'sunset': 'Sunset Minimal',
+            'submerged': 'Submerged Glacier',
+            'midnight': 'Midnight OLED'
+        };
+
+        const clockCycleList = ['iphone', 'samsung', 'vivo', 'ios-serif', 'minimal', 'neon'];
+        const clockLabels = {
+            'iphone': 'iOS Lock Screen Bold (2X)',
+            'samsung': 'Samsung One UI Modern',
+            'vivo': 'Vivo OriginOS Geometric',
+            'ios-serif': 'iOS Editorial Serif',
+            'minimal': 'iOS Clean Minimal 100',
+            'neon': 'Cyber Neon Glow'
+        };
+
+        const speedCycleList = ['normal', 'fast', 'slow'];
+        const speedLabels = {
+            'normal': 'Every 5 Minutes (Normal)',
+            'fast': 'Every 1 Minute (Fast)',
+            'slow': 'Every 10 Minutes (Slow)'
+        };
+
+        function getLauncherSettingsItems() {
+            return Array.from(document.querySelectorAll('#settings-menu-list .modal-setting-item'));
+        }
+
+        function setLauncherSettingsFocus(index) {
+            const items = getLauncherSettingsItems();
+            if (items.length === 0) return;
+            items.forEach(el => el.classList.remove('focused'));
+            currentSettingsIndex = Math.max(0, Math.min(index, items.length - 1));
+            const targetEl = items[currentSettingsIndex];
+            if (targetEl) {
+                targetEl.classList.add('focused');
+                targetEl.focus({ preventScroll: true });
+                targetEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                playTvSound('focus');
+            }
+        }
+
+        function syncDropdownLabels() {
+            const themeLabel = document.getElementById('dropdown-theme-label');
+            if (themeLabel) themeLabel.textContent = themeLabels[currentTheme] || 'Alpine Glass';
+
+            const clockLabel = document.getElementById('dropdown-clock-label');
+            if (clockLabel) clockLabel.textContent = clockLabels[currentClockFace] || 'iPhone Classic (2X Scale)';
+
+            const speedLabel = document.getElementById('dropdown-speed-label');
+            if (speedLabel) speedLabel.textContent = speedLabels[currentWallpaperSpeed] || 'Every 5 Minutes (Normal)';
+        }
+
+        window.openLauncherSettings = function() {
+            isLauncherSettingsOpen = true;
+            launcherSettingsModal.classList.remove('opacity-0', 'pointer-events-none');
+            launcherSettingsBox.classList.remove('scale-95', 'translate-y-[-10px]');
+            launcherSettingsBox.classList.add('scale-100', 'translate-y-0');
+
+            syncDropdownLabels();
+
+            setTimeout(() => {
+                setLauncherSettingsFocus(0);
+            }, 60);
+        };
+
+        window.closeLauncherSettings = function() {
+            isLauncherSettingsOpen = false;
+            launcherSettingsModal.classList.add('opacity-0', 'pointer-events-none');
+            launcherSettingsBox.classList.remove('scale-100', 'translate-y-0');
+            launcherSettingsBox.classList.add('scale-95', 'translate-y-[-10px]');
+            document.querySelectorAll('#launcher-settings-modal .modal-setting-item').forEach(el => el.classList.remove('focused'));
+
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
+            if (isAppsDrawerOpen && cachedAllApps.length > 0) {
+                setFocus(cachedAllApps[0]);
+            } else if (cachedHeaderWeather) {
+                setFocus(cachedHeaderWeather);
+            }
+        };
+
+        // Attach Click Listeners inside Top-Right Dropdown
+        document.querySelectorAll('#settings-menu-list .modal-setting-item').forEach((item, idx) => {
+            item.addEventListener('click', () => {
+                playTvSound('select');
+                const action = item.getAttribute('data-action');
+                const intent = item.getAttribute('data-intent');
+
+                if (action === 'all_fire_tv_settings') {
+                    if (window.Android && typeof window.Android.openFireTvSettings === 'function') {
+                        window.Android.openFireTvSettings();
+                    } else if (window.Android && typeof window.Android.openAllApps === 'function') {
+                        window.Android.openAllApps();
+                    } else if (window.Android && typeof window.Android.launchIntent === 'function') {
+                        window.Android.launchIntent('android.settings.SETTINGS');
+                    }
+                    return;
+                }
+                if (action === 'clear_ram') {
+                    runClearRamScript();
+                    return;
+                }
+                if (action === 'toggle_theme') {
+                    const nextIdx = (themeCycleList.indexOf(currentTheme) + 1) % themeCycleList.length;
+                    applyTheme(themeCycleList[nextIdx]);
+                    syncDropdownLabels();
+                    return;
+                }
+                if (action === 'toggle_clock') {
+                    const nextIdx = (clockCycleList.indexOf(currentClockFace) + 1) % clockCycleList.length;
+                    applyClockFace(clockCycleList[nextIdx]);
+                    syncDropdownLabels();
+                    return;
+                }
+                if (action === 'toggle_speed') {
+                    const nextIdx = (speedCycleList.indexOf(currentWallpaperSpeed) + 1) % speedCycleList.length;
+                    applyWallpaperSpeed(speedCycleList[nextIdx]);
+                    syncDropdownLabels();
+                    return;
+                }
+                if (action === 'refresh_apps') {
+                    renderAllInstalledApps();
+                    if (window.Android && typeof window.Android.showToast === 'function') {
+                        window.Android.showToast("Apps list reloaded from Fire TV");
+                    }
+                    return;
+                }
+                if (action === 'firetv_apps_grid') {
+                    if (window.Android && typeof window.Android.openFireTvAppsGrid === 'function') {
+                        window.Android.openFireTvAppsGrid();
+                    } else if (window.Android && typeof window.Android.launchIntent === 'function') {
+                        window.Android.launchIntent("com.amazon.venezia.LAUNCH_GRID");
+                    }
+                    return;
+                }
+                if (action === 'all_apps') {
+                    if (window.Android && typeof window.Android.openAllApps === 'function') {
+                        window.Android.openAllApps();
+                    } else if (window.Android && typeof window.Android.launchIntent === 'function') {
+                        window.Android.launchIntent("android.settings.MANAGE_APPLICATIONS_SETTINGS");
+                    }
+                    return;
+                }
+                if (intent) {
+                    if (window.Android && typeof window.Android.launchIntent === 'function') {
+                        window.Android.launchIntent(intent);
+                    }
+                    return;
+                }
+            });
+
+            item.addEventListener('focus', () => {
+                currentSettingsIndex = idx;
+                document.querySelectorAll('#settings-menu-list .modal-setting-item').forEach(el => el.classList.remove('focused'));
+                item.classList.add('focused');
+            });
+        });
+
+        // GLOBAL HANDLER FOR FIRE TV REMOTE PHYSICAL BACK BUTTON
+        window.handleBackKey = function() {
+            if (isLauncherSettingsOpen) {
+                closeLauncherSettings();
+                return true;
+            }
+            if (isWeatherModalOpen) {
+                closeWeatherModal();
+                return true;
+            }
+            if (isAppsDrawerOpen) {
+                closeAppsDrawer();
+                return true;
+            }
+            return false;
+        };
+
+        // --- 7. CLEAR CACHED RAM SCRIPT (PRESERVED) ---
+        let isCleaningRam = false;
+        function runClearRamScript() {
+            if (isCleaningRam) return;
+            isCleaningRam = true;
+
+            const iconBox = document.getElementById('ram-icon-box');
+            const icon = document.getElementById('ram-icon');
+            const title = document.getElementById('ram-title');
+            const storageStatus = document.getElementById('storage-status');
+
+            if (iconBox) iconBox.classList.add('animate-ram-spin');
+            if (icon) icon.className = "fa-solid fa-arrows-rotate text-amber-300";
+            if (title) title.innerText = "Optimizing...";
+
+            setTimeout(() => {
+                let freedMb = "124";
+                if (window.Android && typeof window.Android.clearRam === 'function') {
+                    try {
+                        freedMb = window.Android.clearRam() || "124";
+                    } catch (e) {}
+                }
+
+                if (iconBox) iconBox.classList.remove('animate-ram-spin');
+                if (icon) icon.className = "fa-solid fa-circle-check text-emerald-300";
+                if (title) title.innerText = "RAM Boosted!";
+
+                if (storageStatus) {
+                    storageStatus.innerText = `RAM: Optimized | Free: 5.12 GB`;
+                }
+
+                if (window.Android && typeof window.Android.showToast === 'function') {
+                    window.Android.showToast(`Cached RAM Cleared! Freed ${freedMb} MB`);
+                }
+
+                setTimeout(() => {
+                    if (icon) icon.className = "fa-solid fa-bolt";
+                    if (title) title.innerText = "Clear RAM";
+                    isCleaningRam = false;
+                }, 3500);
+            }, 600);
+        }
+
+        // --- 8. ACTION EXECUTION & APP STORE LINKING ---
+        function executeAction(el) {
+            playTvSound('select');
+            const appName = el.getAttribute('data-app');
+            const pkg = el.getAttribute('data-package');
+            const settingIntent = el.getAttribute('data-intent');
+            const action = el.getAttribute('data-action');
+
+            if (action === 'launcher_settings') {
+                openLauncherSettings();
+                return;
+            }
+            if (action === 'all_fire_tv_settings') {
+                    if (window.Android && typeof window.Android.openFireTvSettings === 'function') {
+                        window.Android.openFireTvSettings();
+                    } else if (window.Android && typeof window.Android.openAllApps === 'function') {
+                        window.Android.openAllApps();
+                    } else if (window.Android && typeof window.Android.launchIntent === 'function') {
+                        window.Android.launchIntent('android.settings.SETTINGS');
+                    }
+                    return;
+                }
+                if (action === 'clear_ram') {
+                runClearRamScript();
+                return;
+            }
+            if (action === 'weather') {
+                openWeatherModal();
+                return;
+            }
+            if (action === 'profile') {
+                if (window.Android && typeof window.Android.showToast === 'function') {
+                    window.Android.showToast("On Fire v1.00 · Fire TV Stick Lite\nAmit Kumar");
+                }
+                return;
+            }
+            if (action === 'firetv_apps_grid') {
+                if (window.Android && typeof window.Android.openFireTvAppsGrid === 'function') {
+                    window.Android.openFireTvAppsGrid();
+                } else if (window.Android && typeof window.Android.openAllApps === 'function') {
+                    window.Android.openAllApps();
+                } else if (window.Android && typeof window.Android.openInAppStore === 'function') {
+                    window.Android.openInAppStore("");
+                }
+                return;
+            }
+            if (action === 'appstore') {
+                if (window.Android && typeof window.Android.openFireTvAppsGrid === 'function') {
+                    window.Android.openFireTvAppsGrid();
+                } else if (window.Android && typeof window.Android.openInAppStore === 'function') {
+                    window.Android.openInAppStore("");
+                } else if (window.Android && typeof window.Android.launchApp === 'function') {
+                    window.Android.launchApp("com.android.vending");
+                }
+                return;
+            }
+            if (action === 'all_apps') {
+                if (window.Android && typeof window.Android.openFireTvAppsGrid === 'function') {
+                    window.Android.openFireTvAppsGrid();
+                } else if (window.Android && typeof window.Android.openAllApps === 'function') {
+                    window.Android.openAllApps();
+                } else if (window.Android && typeof window.Android.launchIntent === 'function') {
+                    window.Android.launchIntent("android.settings.MANAGE_APPLICATIONS_SETTINGS");
+                }
+                return;
+            }
+
+            if (pkg) {
+                if (window.Android && typeof window.Android.launchApp === 'function') {
+                    window.Android.launchApp(pkg);
+                }
+            } else if (settingIntent) {
+                if (window.Android && typeof window.Android.launchIntent === 'function') {
+                    window.Android.launchIntent(settingIntent);
+                }
+            }
+        }
+
+        function openAppInStore(el) {
+            if (!el) return;
+            const pkg = el.getAttribute('data-package');
+            const appName = el.getAttribute('data-app') || "App";
+            if (pkg) {
+                playTvSound('select');
+                if (window.Android && typeof window.Android.openInAppStore === 'function') {
+                    window.Android.showToast(`Opening ${appName} in Fire TV App Store...`);
+                    window.Android.openInAppStore(pkg);
+                }
+            }
+        }
+
+        // --- 9. DYNAMIC "ALL INSTALLED APPS" SECTION LOADER (FULL-CARD ORIGINAL APP ICONS) ---
+        function renderAllInstalledApps() {
+            const grid = document.getElementById('all-apps-grid');
+            if (!grid) return;
+
+            let installed = [];
+            if (window.Android && typeof window.Android.getInstalledApps === 'function') {
+                try {
+                    const raw = window.Android.getInstalledApps();
+                    if (typeof raw === 'string' && raw.trim().startsWith('[')) {
+                        installed = JSON.parse(raw);
+                    } else if (Array.isArray(raw)) {
+                        installed = raw;
+                    }
+                } catch (e) {
+                    console.error("Error reading installed apps", e);
+                }
+            }
+
+            // High-priority curated list of streaming & utility apps with full-card original iconography (as in user screenshots)
+            const curatedApps = [
+                // ROW 1
+                {
+                    pkg: 'in.startv.hotstar',
+                    name: 'JioHotstar',
+                    bg: 'linear-gradient(90deg, #00B2FE 0%, #0088FF 40%, #D81B60 100%)',
+                    iconSvg: `<div class="flex items-center space-x-2 select-none"><svg class="h-9 w-9 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5H22l-6 4.5 2.5 7.5L12 15l-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg><span class="text-2xl font-black text-white tracking-tight drop-shadow-md">JioHotstar</span></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'app.netmirror.newtv',
+                    name: 'Net Mirror TV',
+                    bg: '#0B0D13',
+                    iconSvg: `<div class="flex items-center space-x-2 select-none"><div class="bg-red-600 text-white font-black text-[11px] px-2 py-0.5 rounded tracking-wider shadow">NEW</div><div class="flex flex-col leading-tight"><div class="flex items-baseline space-x-1"><span class="text-xl font-black text-red-500 tracking-wider">NET</span><span class="text-[10px] font-black text-emerald-400">TV</span></div><span class="text-lg font-black text-red-500 tracking-widest -mt-1">MIRROR</span></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.amazon.firetv.youtube',
+                    name: 'YouTube',
+                    bg: '#FFFFFF',
+                    iconSvg: `<div class="flex items-center space-x-2 select-none"><svg class="h-9 w-auto drop-shadow-sm" viewBox="0 0 68 48"><path d="M66.5 7.7c-.8-2.9-2.5-5.4-5.4-6.2C55.8.1 34 0 34 0S12.2.1 6.9 1.5C4 2.3 2.3 4.8 1.5 7.7.1 13 0 24 0 24s.1 11 1.5 16.3c.8 2.9 2.5 5.4 5.4 6.2 5.3 1.4 27.1 1.5 27.1 1.5s21.8-.1 27.1-1.5c2.9-.8 4.6-3.3 5.4-6.2C67.9 35 68 24 68 24s-.1-11-1.5-16.3z" fill="#FF0000"/><polygon points="27,14 45,24 27,34" fill="#FFFFFF"/></svg><span class="text-2xl font-black text-black tracking-tight">YouTube</span></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'tv.playbox.android',
+                    name: 'PLAYBOXTV',
+                    bg: '#FFFFFF',
+                    iconSvg: `<div class="flex items-center space-x-2.5 select-none"><svg class="h-10 w-10 shrink-0" viewBox="0 0 100 100"><polygon points="50,5 90,25 90,75 50,95 10,75 10,25" fill="#E50914"/><polygon points="40,30 70,50 40,70" fill="#FFFFFF"/></svg><div class="flex flex-col text-left"><span class="text-xl font-black text-gray-900 tracking-tight leading-none">PLAYBOX<span class="text-red-600">TV</span></span><span class="text-[9px] font-bold text-gray-500 tracking-tight mt-0.5">Give Wings to Entertainment</span></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.background.apps',
+                    name: 'Background Apps & Process List',
+                    bg: '#0A111E',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none text-center px-2"><span class="text-base font-black text-white leading-tight">Background</span><span class="text-xs font-semibold text-gray-300">Apps & Process List</span><div class="flex items-center justify-center space-x-1 text-sky-400 mt-1"><svg class="w-16 h-4" viewBox="0 0 80 20" fill="none"><path d="M0 10 H20 L25 2 L32 18 L38 6 L44 14 L48 10 H65" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M72 10 A3 3 0 1 0 72 7 A3 3 0 1 0 72 10" fill="#F43F5E"/></svg></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.esaba.downloader',
+                    name: 'Downloader',
+                    bg: '#E88C00',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><svg class="h-12 w-12 drop-shadow-md" viewBox="0 0 64 64" fill="none"><path d="M12 6 C12 3 14 1 17 1 L32 1 C48 1 56 11 56 32 C56 53 48 63 32 63 L17 63 C14 63 12 61 12 58 Z" fill="#FFFFFF"/><path d="M30 14 L30 36 L21 27 L16 32 L32 48 L48 32 L43 27 L34 36 L34 14 Z" fill="#E88C00"/></svg><span class="text-sm font-black text-white tracking-wide mt-1 drop-shadow">Downloader</span></div>`,
+                    hideLabel: true
+                },
+
+                // ROW 2
+                {
+                    pkg: 'home.on.fire',
+                    name: 'Home on Fire',
+                    bg: '#E50914',
+                    iconSvg: `<div class="flex items-center space-x-2.5 select-none px-3"><div class="w-12 h-12 flex items-center justify-center text-white text-3xl"><i class="fa-solid fa-house-fire drop-shadow-md"></i></div><div class="flex flex-col text-left leading-none font-black text-white text-lg tracking-tight"><span>Home</span><span class="text-sm font-bold opacity-90 my-0.5">on</span><span>Fire</span></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'org.localsend.localsend_app',
+                    name: 'LocalSend',
+                    bg: '#EBF8FF',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><svg class="h-11 w-11" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#00B4D8" stroke-width="4" stroke-dasharray="6 4"/><circle cx="24" cy="24" r="7" fill="#00B4D8"/></svg><span class="text-base font-black text-slate-800 tracking-tight mt-1">LocalSend</span></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'music.and.more',
+                    name: 'Music & More',
+                    bg: '#0C1322',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mb-1 shadow-lg"><svg class="w-7 h-7 text-cyan-400" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="8" width="3" height="8" rx="1.5"/><rect x="7" y="4" width="3" height="16" rx="1.5"/><rect x="12" y="6" width="3" height="12" rx="1.5"/><rect x="17" y="2" width="3" height="20" rx="1.5"/><rect x="22" y="9" width="3" height="6" rx="1.5"/></svg></div><span class="text-xs font-black text-white tracking-wide">Music & More</span></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.amazon.avod',
+                    name: 'Prime Video',
+                    bg: '#00A8E1',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><span class="text-2xl font-black text-white tracking-tight">prime video</span><svg class="w-28 h-4 -mt-0.5" viewBox="0 0 140 20" fill="none"><path d="M10 6 C50 20 90 20 130 6" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/><polygon points="128,4 135,7 132,13" fill="#FFFFFF"/></svg></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'org.smarttube.stable',
+                    name: 'SmartTube',
+                    bg: '#4A5568',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><div class="w-14 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg"><span class="text-white font-black text-2xl tracking-tighter">S</span></div><div class="w-8 h-1 bg-white/40 rounded-full mt-1.5"></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.onemainstream.sonyliv.android',
+                    name: 'Sony LIV',
+                    bg: 'linear-gradient(135deg, #10081C 0%, #170C2A 60%, #4A0E4E 100%)',
+                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><span class="text-[10px] font-black text-white tracking-[0.25em] mb-0.5 opacity-90">SONY</span><div class="px-4 py-0.5 rounded-lg flex items-center justify-center shadow-xl" style="background: linear-gradient(90deg, #FF5722 0%, #E91E63 40%, #9C27B0 75%, #00BCD4 100%);"><span class="text-lg font-black text-white">liv</span></div></div>`,
+                    hideLabel: true
+                },
+
+                // ROW 3
+                {
+                    pkg: 'com.zee5.amazon',
+                    name: 'ZEE5',
+                    bg: 'linear-gradient(135deg, #1B2130 0%, #0D111A 100%)',
+                    iconSvg: `<div class="flex items-center space-x-3 select-none"><span class="text-3xl">🏆</span><div class="flex items-baseline space-x-0.5"><span class="text-3xl font-black text-white tracking-tight">Z</span><span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-amber-400 via-pink-500 to-indigo-400">5</span></div></div>`,
+                    hideLabel: false
+                },
+                {
+                    pkg: 'settings',
+                    name: 'Settings',
+                    action: 'launcher_settings',
+                    bg: 'linear-gradient(135deg, #242936 0%, #151821 100%)',
+                    iconSvg: `<svg class="h-14 w-14 drop-shadow-2xl select-none" viewBox="0 0 100 100"><defs><linearGradient id="macGearGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFFFFF" /><stop offset="45%" stop-color="#CBD5E1" /><stop offset="100%" stop-color="#64748B" /></linearGradient><linearGradient id="macGearInner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#334155" /><stop offset="100%" stop-color="#0F172A" /></linearGradient><filter id="macGearShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity="0.7"/></filter></defs><g filter="url(#macGearShadow)"><circle cx="50" cy="50" r="37" fill="url(#macGearGrad)"/><rect x="44" y="6" width="12" height="11" rx="2.5" fill="url(#macGearGrad)"/><rect x="44" y="83" width="12" height="11" rx="2.5" fill="url(#macGearGrad)"/><rect x="6" y="44" width="11" height="12" rx="2.5" fill="url(#macGearGrad)"/><rect x="83" y="44" width="11" height="12" rx="2.5" fill="url(#macGearGrad)"/><rect x="18" y="18" width="12" height="11" rx="2.5" transform="rotate(45 23.5 23.5)" fill="url(#macGearGrad)"/><rect x="71" y="71" width="12" height="11" rx="2.5" transform="rotate(45 76.5 76.5)" fill="url(#macGearGrad)"/><rect x="71" y="18" width="12" height="11" rx="2.5" transform="rotate(-45 76.5 23.5)" fill="url(#macGearGrad)"/><rect x="18" y="71" width="12" height="11" rx="2.5" transform="rotate(-45 23.5 76.5)" fill="url(#macGearGrad)"/><circle cx="50" cy="50" r="22" fill="url(#macGearInner)"/><circle cx="50" cy="50" r="11" fill="url(#macGearGrad)"/><circle cx="50" cy="50" r="5" fill="#0F172A"/></g></svg>`,
+                    hideLabel: false
+                },
+                {
+                    pkg: 'com.mxtech.videoplayer.ad',
+                    name: 'MXPLAYER TV',
+                    bg: '#00B4D8',
+                    iconSvg: `<div class="flex items-center space-x-2 select-none px-2"><div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md"><i class="fa-solid fa-play text-[#00B4D8] text-base ml-0.5"></i></div><span class="text-lg font-black text-white tracking-wider">MXPLAYER<span class="text-xs ml-1 bg-black/20 px-1 py-0.5 rounded">TV</span></span></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'com.onfire.launcher',
+                    name: 'ON FIRE',
+                    bg: '#0D111A',
+                    iconSvg: `<div class="flex items-center space-x-2.5 select-none px-2"><div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-900 to-indigo-950 border border-blue-400/40 flex items-center justify-center shadow-lg"><i class="fa-solid fa-fire text-amber-400 text-xl drop-shadow"></i></div><div class="flex flex-col text-left leading-tight"><span class="text-xs font-black text-white tracking-wider">ON FIRE</span><span class="text-[9px] font-black text-red-500 tracking-tight">LEANBACK LAUNCHER</span><span class="text-[8px] font-bold text-gray-400">Google TV | Android TV | Fire TV</span></div></div>`,
+                    hideLabel: true
+                },
+                {
+                    pkg: 'ram',
+                    name: 'Clear RAM',
+                    action: 'clear_ram',
+                    bg: 'linear-gradient(135deg, #064E3B 0%, #03281E 100%)',
+                    iconSvg: `<div id="ram-icon-box" class="w-12 h-12 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/30 flex items-center justify-center shadow-xl"><i id="ram-icon" class="fa-solid fa-bolt text-2xl text-emerald-300 drop-shadow"></i></div>`,
+                    hideLabel: false
+                },
+                {
+                    pkg: 'com.netflix.ninja',
+                    name: 'Netflix',
+                    bg: '#FFFFFF',
+                    iconSvg: `<span class="text-2xl font-black tracking-widest text-[#E50914] select-none" style="font-family: 'Helvetica Neue', Arial, sans-serif; letter-spacing: 4px; transform: scaleY(1.15);">NETFLIX</span>`,
+                    hideLabel: true
+                }
+            ];
+
+            const curatedMap = {};
+            curatedApps.forEach(a => { if (a.pkg) curatedMap[a.pkg.toLowerCase()] = true; });
+
+            // Add any additional user installed apps that aren't already curated
+            const extraApps = [];
+            if (Array.isArray(installed)) {
+                installed.forEach(app => {
+                    const p = (app.pkg || '').toLowerCase();
+                    if (!p || curatedMap[p]) return;
+                    if (p.includes('youtube') || p.includes('hotstar') || p.includes('prime') || p.includes('netflix') || p.includes('sonyliv') || p.includes('zee5') || p.includes('downloader') || p.includes('localsend')) return;
+
+                    let iconSrc = '';
+                    if (window.Android && typeof window.Android.getAppIcon === 'function') {
+                        try {
+                            iconSrc = window.Android.getAppIcon(app.pkg);
+                        } catch (e) {}
+                    }
+
+                    extraApps.push({
+                        pkg: app.pkg,
+                        name: app.name || 'Application',
+                        iconSrc: iconSrc,
+                        bg: 'linear-gradient(135deg, #1E2330 0%, #12151D 100%)',
+                        hideLabel: false
+                    });
+                });
+            }
+
+            const allToRender = curatedApps.concat(extraApps);
+            grid.innerHTML = '';
+
+            allToRender.forEach(app => {
+                const card = document.createElement('div');
+                card.setAttribute('tabindex', '0');
+                card.className = 'tv-focusable tv-card-rect glass-black-card cursor-pointer group flex flex-col items-center justify-center p-3 relative overflow-hidden';
+                card.setAttribute('data-app', app.name);
+                if (app.pkg) card.setAttribute('data-package', app.pkg);
+                if (app.action) card.setAttribute('data-action', app.action);
+                if (app.bg) card.style.background = app.bg;
+
+                let iconContent = '';
+                if (app.iconSvg) {
+                    iconContent = app.iconSvg;
+                } else if (app.iconSrc && app.iconSrc.trim()) {
+                    iconContent = `<img src="${app.iconSrc}" class="h-20 w-20 object-contain drop-shadow-2xl" onerror="this.outerHTML='<div class=\\'w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-black text-white\\'>${(app.name[0]||'A').toUpperCase()}</div>';">`;
+                } else {
+                    const letter = (app.name[0] || 'A').toUpperCase();
+                    iconContent = `<div class="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-2xl font-black text-white shadow-xl">${letter}</div>`;
+                }
+
+                const titleId = app.action === 'clear_ram' ? 'id="ram-title"' : '';
+
+                // PURE FULL-CARD ORIGINAL ICON TILE (MATCHING APPLE TV / FIRE TV REFERENCE IMAGES)
+                card.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center select-none pointer-events-none">
+                        <div class="app-icon-box flex items-center justify-center w-full flex-1">
+                            ${iconContent}
+                        </div>
+                        ${app.hideLabel ? '' : `<span ${titleId} class="text-xs font-black text-white tracking-wide truncate max-w-[92%] mt-1 drop-shadow-md text-center">${app.name}</span>`}
+                    </div>
+                `;
+
+                card.addEventListener('focus', () => {
+                    if (currentActiveElement !== card) {
+                        if (currentActiveElement) currentActiveElement.classList.remove('focused');
+                        currentActiveElement = card;
+                        card.classList.add('focused');
+                        playTvSound('focus');
+                    }
+                });
+
+                card.addEventListener('click', () => {
+                    if (!isWeatherModalOpen && !isLauncherSettingsOpen) {
+                        executeAction(card);
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+
+            refreshNavCache();
+        }
+
+        // --- 10. SPATIAL D-PAD NAVIGATION & DRAWER ENGINE (PERFECT FIXED CLOCK) ---
+        let currentActiveElement = null;
+        let cachedAllApps = [];
+        let cachedHeaderProfile = null;
+        let cachedHeaderWeather = null;
+        let isAppsDrawerOpen = false;
+
+        function openAppsDrawer(targetEl = null) {
+            isAppsDrawerOpen = true;
+            const drawer = document.getElementById('apps-drawer');
+            if (drawer) drawer.classList.add('open');
+            const toFocus = targetEl || (cachedAllApps.length > 0 ? cachedAllApps[0] : null);
+            if (toFocus) setFocus(toFocus);
+        }
+
+        function closeAppsDrawer() {
+            isAppsDrawerOpen = false;
+            const drawer = document.getElementById('apps-drawer');
+            if (drawer) drawer.classList.remove('open');
+            const scrollBox = document.getElementById('apps-drawer-scroll');
+            if (scrollBox) scrollBox.scrollTo({ top: 0, behavior: 'smooth' });
+            if (cachedHeaderWeather) setFocus(cachedHeaderWeather);
+        }
+
+        function refreshNavCache() {
+            cachedHeaderProfile = document.getElementById('profile-btn');
+            cachedHeaderWeather = document.getElementById('btn-weather');
+            cachedAllApps = Array.from(document.querySelectorAll('#all-apps-grid .tv-focusable'));
+        }
+
+        function setFocus(el) {
+            if (!el) return;
+            if (currentActiveElement) {
+                currentActiveElement.classList.remove('focused');
+            }
+            currentActiveElement = el;
+            el.classList.add('focused');
+            try {
+                el.focus({ preventScroll: true });
+            } catch (e) {}
+            playTvSound('focus');
+
+            // If element is inside the bottom apps drawer, scroll drawer internally
+            const aIdx = cachedAllApps.indexOf(el);
+            if (aIdx >= 0) {
+                const scrollBox = document.getElementById('apps-drawer-scroll');
+                if (scrollBox) {
+                    const row = Math.floor(aIdx / 5);
+                    const targetY = row * 196;
+                    scrollBox.scrollTo({ top: targetY, behavior: 'smooth' });
+                }
+            }
+        }
+
+        function findClosestAbove(current, list) {
+            const curRect = current.getBoundingClientRect();
+            let best = null;
+            let minDy = Infinity;
+            let minDx = Infinity;
+            list.forEach(el => {
+                const r = el.getBoundingClientRect();
+                const dy = curRect.top - r.top;
+                if (dy > 20) { // strictly above
+                    const dx = Math.abs(curRect.left - r.left);
+                    if (dy < minDy || (Math.abs(dy - minDy) < 30 && dx < minDx)) {
+                        minDy = dy;
+                        minDx = dx;
+                        best = el;
+                    }
+                }
+            });
+            return best;
+        }
+
+        function findClosestBelow(current, list) {
+            const curRect = current.getBoundingClientRect();
+            let best = null;
+            let minDy = Infinity;
+            let minDx = Infinity;
+            list.forEach(el => {
+                const r = el.getBoundingClientRect();
+                const dy = r.top - curRect.top;
+                if (dy > 20) { // strictly below
+                    const dx = Math.abs(curRect.left - r.left);
+                    if (dy < minDy || (Math.abs(dy - minDy) < 30 && dx < minDx)) {
+                        minDy = dy;
+                        minDx = dx;
+                        best = el;
+                    }
+                }
+            });
+            return best;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // A. Settings Modal Navigation
+            if (isLauncherSettingsOpen) {
+                if (e.key === 'Escape' || e.keyCode === 4 || e.keyCode === 27 || e.key === 'Back' || e.key === 'GoBack' || e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeLauncherSettings();
+                    return;
+                }
+
+                if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
+                    e.preventDefault();
+                    setLauncherSettingsFocus(currentSettingsIndex + 1);
+                } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
+                    e.preventDefault();
+                    setLauncherSettingsFocus(currentSettingsIndex - 1);
+                } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const items = getLauncherSettingsItems();
+                    if (items[currentSettingsIndex]) items[currentSettingsIndex].click();
+                }
+                return;
+            }
+
+            // B. Weather Modal Navigation
+            if (isWeatherModalOpen) {
+                if (e.key === 'Escape' || e.keyCode === 4 || e.keyCode === 27 || e.key === 'Back' || e.key === 'GoBack') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeWeatherModal();
+                    return;
+                }
+                const modalItems = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
+
+                if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
+                    e.preventDefault();
+                    if (currentWeatherModalIndex === 0 || currentWeatherModalIndex === 1) {
+                        setWeatherModalFocus(currentWeatherModalIndex + 1);
+                    } else if (currentWeatherModalIndex === 3 || currentWeatherModalIndex === 4) {
+                        setWeatherModalFocus(currentWeatherModalIndex + 1);
+                    } else if (currentWeatherModalIndex === 6) {
+                        setWeatherModalFocus(7);
+                    }
+                } else if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
+                    e.preventDefault();
+                    if (currentWeatherModalIndex === 1 || currentWeatherModalIndex === 2) {
+                        setWeatherModalFocus(currentWeatherModalIndex - 1);
+                    } else if (currentWeatherModalIndex === 4 || currentWeatherModalIndex === 5) {
+                        setWeatherModalFocus(currentWeatherModalIndex - 1);
+                    } else if (currentWeatherModalIndex === 7) {
+                        setWeatherModalFocus(6);
+                    }
+                } else if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
+                    e.preventDefault();
+                    if (currentWeatherModalIndex >= 0 && currentWeatherModalIndex <= 2) {
+                        setWeatherModalFocus(currentWeatherModalIndex + 3);
+                    } else if (currentWeatherModalIndex >= 3 && currentWeatherModalIndex <= 5) {
+                        setWeatherModalFocus(6);
+                    } else if (currentWeatherModalIndex === 6 || currentWeatherModalIndex === 7) {
+                        setWeatherModalFocus(8);
+                    }
+                } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
+                    e.preventDefault();
+                    if (currentWeatherModalIndex === 8) {
+                        setWeatherModalFocus(6);
+                    } else if (currentWeatherModalIndex === 6 || currentWeatherModalIndex === 7) {
+                        setWeatherModalFocus(4);
+                    } else if (currentWeatherModalIndex >= 3 && currentWeatherModalIndex <= 5) {
+                        setWeatherModalFocus(currentWeatherModalIndex - 3);
+                    }
+                } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    playTvSound('select');
+                    const targetEl = modalItems[currentWeatherModalIndex] || document.activeElement;
+                    if (targetEl) targetEl.click();
+                }
+                return;
+            }
+
+            // Menu Key (KeyCode 82) opens App Store for focused item
+            if (e.keyCode === 82 || e.key === 'Menu') {
+                e.preventDefault();
+                openAppInStore(currentActiveElement);
+                return;
+            }
+
+            // Enter / OK Button
+            if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
+                e.preventDefault();
+                if (currentActiveElement) {
+                    executeAction(currentActiveElement);
+                }
+                return;
+            }
+
+            // Fallback: If no element currently active, capture focus on any D-Pad press!
+            if (!currentActiveElement) {
+                if (cachedAllApps.length > 0) setFocus(cachedAllApps[0]);
+                else if (cachedHeaderProfile) setFocus(cachedHeaderProfile);
+                return;
+            }
+
+            let aIdx = cachedAllApps.indexOf(currentActiveElement);
+
+            // UP ARROW: Navigate up or slide down drawer to leave
+            if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
+                e.preventDefault();
+                if (isAppsDrawerOpen) {
+                    if (aIdx >= 5) {
+                        setFocus(cachedAllApps[aIdx - 5]);
+                    } else {
+                        // In top row of apps: close drawer, return to weather
+                        closeAppsDrawer();
+                    }
+                } else if (currentActiveElement === cachedHeaderWeather) {
+                    setFocus(cachedHeaderProfile);
+                }
+                return;
+            }
+
+            // DOWN ARROW: Open drawer from home or navigate rows
+            if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
+                e.preventDefault();
+                if (!isAppsDrawerOpen) {
+                    // Pressing DOWN on Home Screen: Slide up the app section
+                    openAppsDrawer();
+                } else if (aIdx !== -1) {
+                    if (aIdx + 5 < cachedAllApps.length) {
+                        setFocus(cachedAllApps[aIdx + 5]);
+                    } else if (aIdx < cachedAllApps.length - 1) {
+                        setFocus(cachedAllApps[cachedAllApps.length - 1]);
+                    }
+                }
+                return;
+            }
+
+            // LEFT ARROW
+            if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
+                e.preventDefault();
+                if (currentActiveElement === cachedHeaderWeather) {
+                    setFocus(cachedHeaderProfile);
+                } else if (aIdx > 0) {
+                    setFocus(cachedAllApps[aIdx - 1]);
+                }
+                return;
+            }
+
+            // RIGHT ARROW
+            if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
+                e.preventDefault();
+                if (currentActiveElement === cachedHeaderProfile) {
+                    if (cachedHeaderWeather) setFocus(cachedHeaderWeather);
+                } else if (aIdx !== -1 && aIdx < cachedAllApps.length - 1) {
+                    setFocus(cachedAllApps[aIdx + 1]);
+                }
+                return;
+            }
+        });
+
+        // --- 11. DEVICE ENVIRONMENT DETECTION ---
+        function initDeviceEnvironment() {
+            if (window.Android) {
+                try {
+                    const platform = typeof window.Android.getDevicePlatform === 'function' ? window.Android.getDevicePlatform() : 'fire_tv';
+                    const fullDevice = typeof window.Android.getFullDeviceString === 'function' ? window.Android.getFullDeviceString() : null;
+                    
+                    const badgeEl = document.getElementById('tv-platform-badge');
+                    if (badgeEl && fullDevice) {
+                        badgeEl.textContent = fullDevice;
+                    }
+
+                    if (platform === 'google_tv' || platform === 'android_tv') {
+                        const storeCard = document.getElementById('card-appstore');
+                        const storeTitle = document.getElementById('store-card-title');
+                        const storeIconBox = document.getElementById('store-icon-box');
+                        if (storeCard) {
+                            storeCard.setAttribute('data-app', 'Google Play');
+                            storeCard.setAttribute('data-package', 'com.android.vending');
+                            storeCard.setAttribute('data-category', 'Official Google TV Store');
+                            storeCard.setAttribute('data-desc', 'Browse and install millions of TV apps and games on Google Play');
+                            storeCard.style.background = 'linear-gradient(135deg, #01875F 0%, #005F43 55%, #003B2A 100%)';
+                            storeCard.classList.remove('border-amber-400/60');
+                            storeCard.classList.add('border-emerald-400/60');
+                        }
+                        if (storeTitle) {
+                            storeTitle.textContent = 'PLAY STORE';
+                        }
+                        if (storeIconBox) {
+                            storeIconBox.innerHTML = `
+                                <svg class="h-14 w-14 shrink-0 drop-shadow-md" viewBox="0 0 512 512">
+                                    <path fill="#4285F4" d="M37.5 31.8c-4.4 5.3-7 12.8-7 21.6v405.2c0 8.8 2.6 16.3 7 21.6l2.4 2.2 227.4-227.4v-5.4L39.9 29.6l-2.4 2.2z"/>
+                                    <path fill="#FBBC04" d="M344 320.6l-76.7-76.7v-5.4L344 161.8l3.1 1.7 89.2 50.7c25.5 14.5 25.5 38.3 0 52.8l-89.2 50.7-3.1 2.9z"/>
+                                    <path fill="#EA4335" d="M347.1 317.7L267.3 238 37.5 467.8c8.5 9 22.4 10.1 38.1 1.2l271.5-151.3z"/>
+                                    <path fill="#34A853" d="M347.1 164.7L75.6 13.4C59.9 4.5 46 5.6 37.5 14.6L267.3 244.4l79.8-79.7z"/>
+                                </svg>
+                            `;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("initDeviceEnvironment error", e);
+                }
+            }
+        }
+
+        // --- 12. INITIALIZATION ON DOM READY ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initDeviceEnvironment();
+            applyTheme(currentTheme);
+            applyClockFace(currentClockFace);
+            applyWallpaperSpeed(currentWallpaperSpeed);
+            applyCardSize(currentCardSize);
+                        renderAllInstalledApps();
+            refreshNavCache();
+
+            // Attach focus and click listeners to all statically rendered cards
+            document.querySelectorAll('.tv-focusable').forEach(el => {
+                if (el.classList.contains('modal-item') || el.classList.contains('modal-setting-item')) return;
+
+                el.addEventListener('focus', () => {
+                    if (currentActiveElement !== el) {
+                        if (currentActiveElement) currentActiveElement.classList.remove('focused');
+                        currentActiveElement = el;
+                        el.classList.add('focused');
+                        playTvSound('focus');
+                    }
+                });
+
+                el.addEventListener('click', () => {
+                    if (!isWeatherModalOpen && !isLauncherSettingsOpen) {
+                        executeAction(el);
+                    }
+                });
+            });
+
+            // Start focus on Keep Watching (Screen 1) or Profile
+            const firstApp = cachedHeaderWeather || cachedHeaderProfile || (cachedAllApps.length > 0 ? cachedAllApps[0] : null);
+            if (firstApp) setFocus(firstApp);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        });
+    </script>
+</body>
+</html>

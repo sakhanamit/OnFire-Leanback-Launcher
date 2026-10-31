@@ -1,0 +1,2 @@
+rootProject.name = "OnFireLauncher"
+include ':app'

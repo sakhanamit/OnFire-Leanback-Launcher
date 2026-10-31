@@ -1,0 +1,49 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        applicationId "com.onfire.launcher"
+        minSdkVersion 22       // Android 5.1 Lollipop (Fire OS 5)
+        targetSdkVersion 22    // Direct Fire OS 5 runtime compatibility
+        versionCode 1
+        versionName "1.0.0"
+
+        ndk {
+            abiFilters 'armeabi-v7a' // Fire TV Stick 1st Gen Broadcom BCM28155
+        }
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("release-key.jks")
+            storePassword "firetv123"
+            keyAlias "firetv"
+            keyPassword "firetv123"
+
+            // Fire OS 5 (Android 5.1) REQUIRES v1 JAR signing:
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "OnFire-v1.0-release.apk"
+        }
+    }
+}
+
+dependencies {
+}
