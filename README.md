@@ -1,3 +1,11 @@
+<p align="center">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/FiretvOS7/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk">
+    <img src="https://img.shields.io/badge/Download-Fire%20TV%20Stick%20APK-FF9900?style=for-the-badge&logo=amazon" alt="Download Fire TV APK" />
+  </a>
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/GoogleTV/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk">
+    <img src="https://img.shields.io/badge/Download-Google%20TV%20%26%20Android%20TV-3DDC84?style=for-the-badge&logo=android" alt="Download Google TV APK" />
+  </a>
+</p>
 # 🔥 On Fire — Premium Leanback TV Launcher
 
 <p align="center">
