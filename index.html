@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>On Fire — Premium Liquid Glass TV Launcher</title>
+    <meta name="description" content="Ultra-lightweight, zero-bloat Leanback TV launcher for Amazon Fire TV Stick, Google TV, and Android TV. Ad-free, locked 60 FPS, and translucent glass UI.">
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <!-- Open Graph / Social Meta -->
+    <meta property="og:title" content="On Fire — Liquid Glass TV Launcher">
+    <meta property="og:description" content="Ultra-lightweight, zero-bloat Leanback launcher for Fire TV, Google TV, and Android TV.">
+    <meta property="og:image" content="screenshots/02_apps_drawer_5_cards.png">
+    <meta property="og:type" content="website">
+
+    <!-- Fonts & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #07090e;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Outfit', sans-serif;
+        }
+        .glow-flame {
+            box-shadow: 0 0 50px -10px rgba(255, 75, 43, 0.45);
+        }
+        .glow-card {
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+        }
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(15, 23, 42, 0.65) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-panel:hover {
+            border-color: rgba(255, 115, 0, 0.35);
+            transform: translateY(-3px);
+            transition: all 0.25s ease-out;
+        }
+        .flame-gradient {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 50%, #ff8c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .bg-mesh {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(255, 75, 43, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(249, 115, 22, 0.15) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-mesh min-h-screen selection:bg-orange-500 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#07090e]/80 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3.5 group">
+                <img src="logo.png" alt="On Fire Logo" class="w-11 h-11 rounded-2xl shadow-lg group-hover:scale-105 transition-transform">
+                <span class="font-heading font-extrabold text-2xl tracking-wide text-white">On Fire <span class="text-orange-500 text-sm font-semibold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 ml-1.5">v1.0.0</span></span>
+            </a>
+            
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-300">
+                <a href="#features" class="hover:text-orange-400 transition-colors">Features</a>
+                <a href="#showcase" class="hover:text-orange-400 transition-colors">Screenshots</a>
+                <a href="#comparison" class="hover:text-orange-400 transition-colors">Comparison</a>
+                <a href="#download" class="hover:text-orange-400 transition-colors">Download</a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher" target="_blank" class="flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-medium text-sm transition-all">
+                    <i class="fa-brands fa-github text-base"></i>
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-20 pb-24 overflow-hidden">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            
+            <!-- Badge -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-red-500/10 border border-orange-500/30 text-orange-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-8">
+                <i class="fa-solid fa-fire text-orange-400"></i>
+                <span>Say Goodbye to TV Home Screen Ads</span>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-tight">
+                The Liquid Glass Launcher <br class="hidden sm:inline">
+                for <span class="flame-gradient">Fire TV & Google TV</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="mt-6 text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+                Ultra-lightweight (<span class="text-orange-400 font-bold">116 KB</span>), zero sponsored banners, locked <span class="text-emerald-400 font-bold">60 FPS</span>, translucent Apple TV-style drawer, and instant 1-click access to root system settings.
+            </p>
+
+            <!-- Call to Actions -->
+            <div id="download" class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/FiretvOS7/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk" class="w-full sm:w-auto flex items-center justify-center space-x-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-400 hover:to-red-400 text-white font-heading font-bold text-lg shadow-xl shadow-orange-500/25 transition-all hover:scale-105">
+                    <i class="fa-brands fa-amazon text-2xl"></i>
+                    <div class="text-left">
+                        <div class="text-xs uppercase tracking-wider opacity-90 font-medium">Download For</div>
+                        <div class="leading-none text-base">Fire TV Stick (Fire OS 7/8)</div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/GoogleTV/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk" class="w-full sm:w-auto flex items-center justify-center space-x-3 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-heading font-bold text-lg transition-all hover:scale-105">
+                    <i class="fa-brands fa-android text-2xl text-emerald-400"></i>
+                    <div class="text-left">
+                        <div class="text-xs uppercase tracking-wider text-slate-300 font-medium">Download For</div>
+                        <div class="leading-none text-base">Google TV & Android TV</div>
+                    </div>
+                </a>
+            </div>
+
+            <p class="text-xs text-slate-400 mt-4">
+                <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Dual Signed (v1 + v2 Scheme) • Free & Open Source under MIT License
+            </p>
+
+            <!-- Hero Image Preview -->
+            <div class="mt-14 relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-orange-600 to-pink-600 rounded-3xl blur-2xl opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+                <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                    <img src="screenshots/01_home_screen_clean.png" alt="On Fire Home Screen Clean" class="w-full h-auto">
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Key Features Section -->
+    <section id="features" class="py-20 border-t border-white/10 bg-black/30">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Engineered Specifically For TV Displays</h2>
+                <p class="mt-4 text-slate-400 text-lg">Every element has been tuned for 10-foot living room viewing and low-latency remote navigation.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 text-2xl mb-6">
+                        <i class="fa-solid fa-table-cells"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">5-Card Ergonomic Grid</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Large 310×170px application cards with glowing ambient focus rings, spaced symmetrically for effortless remote navigation.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-2xl mb-6">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">50% Translucent Side Drawer</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Apple TV-style compact settings panel (580px) with 2X typography (26px headers, 40px icons) for instant readability from the sofa.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-2xl mb-6">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Zero-Flicker Hardware Compositor</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Stabilized GPU compositing eliminates microsecond black screen reloads. Throttled DOM mutations ensure locked 60 FPS.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-2xl mb-6">
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">1-Click Root Fire TV Settings</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Direct bridge to Fire TV's native root matrix (13 categories: Network, Audio, Applications, Remotes, My Fire TV, Accessibility).</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-2xl mb-6">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Audible D-Pad Click Feedback</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Built-in Android AudioManager integration triggers authentic native sound cues on every directional move and selection.</p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl">
+                    <div class="w-14 h-14 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 text-2xl mb-6">
+                        <i class="fa-solid fa-broom"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Instant RAM Booster</h3>
+                    <p class="text-slate-400 leading-relaxed text-sm">Built-in memory cleaner terminates background tasks and flushes memory before launching demanding 4K video streams.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Visual Showcase Section -->
+    <section id="showcase" class="py-20 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Live Fire TV Capture Gallery</h2>
+                <p class="mt-4 text-slate-400 text-lg">Actual 1080p screenshots captured directly from a connected Fire TV Stick running Fire OS 7.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="glass-panel p-4 rounded-3xl">
+                    <img src="screenshots/02_apps_drawer_5_cards.png" alt="5-Card App Drawer" class="rounded-2xl w-full border border-white/10">
+                    <div class="p-4">
+                        <h4 class="text-lg font-bold text-white">5-Card Application Grid</h4>
+                        <p class="text-sm text-slate-400 mt-1">Centered layout with 36px column gap and neon ambient outline on focus.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-3xl">
+                    <img src="screenshots/03_apps_fade_before_weather.png" alt="Upward Fade" class="rounded-2xl w-full border border-white/10">
+                    <div class="p-4">
+                        <h4 class="text-lg font-bold text-white">Seamless Upward Fade Transition</h4>
+                        <p class="text-sm text-slate-400 mt-1">Cards disappear gracefully behind the header without obscuring the clock or weather.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-3xl">
+                    <img src="screenshots/04_settings_menu_50pct_transparent.png" alt="50% Translucent Drawer" class="rounded-2xl w-full border border-white/10">
+                    <div class="p-4">
+                        <h4 class="text-lg font-bold text-white">50% Translucent Side Settings</h4>
+                        <p class="text-sm text-slate-400 mt-1">Compact 580px glass drawer with live wallpaper visibility and doubled typography.</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-3xl">
+                    <img src="screenshots/05_all_firetv_settings_opened.png" alt="All Fire TV Settings" class="rounded-2xl w-full border border-white/10">
+                    <div class="p-4">
+                        <h4 class="text-lg font-bold text-white">Native Root System Settings Grid</h4>
+                        <p class="text-sm text-slate-400 mt-1">One-click shortcut directly into the native 13-category Fire TV configuration hub.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Table Section -->
+    <section id="comparison" class="py-20 border-t border-white/10 bg-black/40">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-white">Stock TV OS vs. On Fire</h2>
+                <p class="mt-4 text-slate-400 text-lg">Compare why thousands of users replace their default TV launcher.</p>
+            </div>
+
+            <div class="glass-panel rounded-3xl overflow-hidden border border-white/15">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-white/5 border-b border-white/10 text-white font-heading text-base">
+                            <tr>
+                                <th class="p-5">Feature</th>
+                                <th class="p-5 text-center text-red-400">Stock Fire OS / Google TV</th>
+                                <th class="p-5 text-center text-orange-400">🔥 On Fire Launcher</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            <tr>
+                                <td class="p-5 font-medium text-white">Sponsored Video Ads & Trailers</td>
+                                <td class="p-5 text-center text-red-400 font-semibold"><i class="fa-solid fa-xmark mr-1"></i> Intrusive</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold"><i class="fa-solid fa-check mr-1"></i> 100% Ad-Free</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-medium text-white">Background RAM Footprint</td>
+                                <td class="p-5 text-center text-red-400 font-semibold">500 MB – 850 MB</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold">~12 MB</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-medium text-white">App Installation Size</td>
+                                <td class="p-5 text-center text-red-400 font-semibold">120 MB+</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold">116 KB</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-medium text-white">Navigation Responsiveness</td>
+                                <td class="p-5 text-center text-red-400 font-semibold">30-45 FPS micro-stutter</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold">Locked 60 FPS</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-medium text-white">Settings Access</td>
+                                <td class="p-5 text-center text-red-400 font-semibold">Buried in deep menus</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold">1-Click Glass Drawer</td>
+                            </tr>
+                            <tr>
+                                <td class="p-5 font-medium text-white">Audible D-Pad Feedback</td>
+                                <td class="p-5 text-center text-red-400 font-semibold">Inconsistent</td>
+                                <td class="p-5 text-center text-emerald-400 font-bold">Native AudioManager</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sideloading Instructions -->
+    <section class="py-20 border-t border-white/10">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-white">How to Install in 60 Seconds</h2>
+                <p class="mt-3 text-slate-400">Two simple sideload methods for your TV or development setup.</p>
+            </div>
+
+            <div class="space-y-4">
+                
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center space-x-3 text-orange-400 font-bold text-lg mb-3">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Method 1: Downloader App (Direct on TV)</span>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-slate-300">
+                        <li>Install the free <strong>Downloader</strong> app from the Amazon Appstore or Google Play Store.</li>
+                        <li>Open Downloader, enter the direct release link for your device, and click <strong>Go</strong>.</li>
+                        <li>Click <strong>Install</strong> and grant permissions when prompted.</li>
+                    </ol>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center space-x-3 text-sky-400 font-bold text-lg mb-3">
+                        <i class="fa-solid fa-terminal"></i>
+                        <span>Method 2: Wireless ADB (PC / Mac)</span>
+                    </div>
+                    <div class="bg-black/60 p-4 rounded-xl font-mono text-xs text-emerald-400 border border-white/10 overflow-x-auto space-y-1">
+                        <div><span class="text-slate-400"># 1. Connect to your TV</span></div>
+                        <div>adb connect 192.168.0.XXX:5555</div>
+                        <div class="pt-2"><span class="text-slate-400"># 2. Sideload the APK</span></div>
+                        <div>adb install -r OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk</div>
+                        <div class="pt-2"><span class="text-slate-400"># 3. Launch On Fire</span></div>
+                        <div>adb shell am start -n com.onfire.launcher/.MainActivity</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/10 text-center text-sm text-slate-400">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <img src="logo.png" alt="On Fire Logo" class="w-7 h-7 rounded-lg">
+                <span class="font-bold text-white">On Fire Leanback TV Launcher</span>
+            </div>
+            <div>
+                Released under the <a href="LICENSE" class="text-orange-400 hover:underline">MIT License</a> • Free & Open Source
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher" target="_blank" class="hover:text-white transition-colors">
+                    <i class="fa-brands fa-github text-lg"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
