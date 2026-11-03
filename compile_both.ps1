@@ -18,7 +18,9 @@ function Build-Version($versionLabel, $minSdk, $targetSdk, $outputApkName) {
     $manifestContent = @"
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.onfire.launcher">
+    package="com.onfire.launcher"
+    android:versionCode="2"
+    android:versionName="1.1.0">
 
     <!-- Universal Android TV, Google TV & Fire TV Hardware Feature Declarations -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -117,22 +119,36 @@ function Build-Version($versionLabel, $minSdk, $targetSdk, $outputApkName) {
     Write-Host ">>> Build and signature verified for $outputApkName" -ForegroundColor Green
 }
 
+# Ensure releases folder exists
+if (-not (Test-Path "$RootDir\releases")) {
+    New-Item -ItemType Directory -Force -Path "$RootDir\releases" | Out-Null
+}
+
 # 1. Flagship Universal Build (All Google TVs, Android TVs 9-14+, Fire OS 7/8)
-Build-Version "Google TV & Android TV & Fire OS 7/8 Universal" 21 28 "OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk"
+Build-Version "Google TV & Android TV & Fire OS 7/8 Universal" 21 28 "OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk"
 
 # 2. Fire TV Dedicated Build (Fire TV Stick Lite / 4K / 4K Max / Cube Fire OS 7)
-Build-Version "Fire TV Stick Lite & 4K (Fire OS 7)" 22 28 "OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk"
+Build-Version "Fire TV Stick Lite & 4K (Fire OS 7)" 22 28 "OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk"
 
 # 3. Legacy Build (Older Android TV 5.0-8.0 & Fire TV Stick Gen 1/2 Fire OS 5)
-Build-Version "Legacy Android TV & Fire OS 5" 21 22 "OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk"
+Build-Version "Legacy Android TV & Fire OS 5" 21 22 "OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk"
 
-# Also sync legacy named alias for full backwards compatibility
-Copy-Item "$RootDir\OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk" "$RootDir\OnFire-v1.0-FireOS7-Modern.apk" -Force
-Copy-Item "$RootDir\OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk" "$RootDir\OnFire-v1.0-FireOS5-Gen1.apk" -Force
+# Copy newly built v1.1 APKs directly into releases/ directory
+Copy-Item "$RootDir\OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk" "$RootDir\releases\OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk" "$RootDir\releases\OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk" "$RootDir\releases\OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk" -Force
+
+# Also mirror to v1.0 naming for backwards compatibility with existing direct bookmarks
+Copy-Item "$RootDir\OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk" "$RootDir\OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk" "$RootDir\OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk" "$RootDir\OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk" "$RootDir\releases\OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk" "$RootDir\releases\OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk" -Force
+Copy-Item "$RootDir\OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk" "$RootDir\releases\OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk" -Force
 
 Write-Host "`n========================================================" -ForegroundColor Green
-Write-Host " ALL OPTIMIZED SIGNED APKS READY IN '$RootDir\':" -ForegroundColor Green
-Write-Host " 1. OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk  (Google TV, Android TV 9-14+, Fire OS 7/8)" -ForegroundColor White
-Write-Host " 2. OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk (Fire TV Stick Lite, 4K, Max Fire OS 7)" -ForegroundColor White
-Write-Host " 3. OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk     (Older Android TV 5-8 & Fire OS 5 Gen 1/2)" -ForegroundColor White
+Write-Host " ALL OPTIMIZED SIGNED APKS READY IN '$RootDir\' & '$RootDir\releases\':" -ForegroundColor Green
+Write-Host " 1. OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk  (Google TV, Android TV 9-14+, Fire OS 7/8)" -ForegroundColor White
+Write-Host " 2. OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk (Fire TV Stick Lite, 4K, Max Fire OS 7)" -ForegroundColor White
+Write-Host " 3. OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk     (Older Android TV 5-8 & Fire OS 5 Gen 1/2)" -ForegroundColor White
 Write-Host "========================================================`n" -ForegroundColor Green

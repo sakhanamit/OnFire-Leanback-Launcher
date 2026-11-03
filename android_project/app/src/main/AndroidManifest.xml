@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.onfire.launcher">
+    package="com.onfire.launcher"
+    android:versionCode="2"
+    android:versionName="1.1.0">
 
     <!-- Universal Android TV, Google TV & Fire TV Hardware Feature Declarations -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
