@@ -32,15 +32,15 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk">
     <img src="https://img.shields.io/badge/Download_For_Fire_TV_Stick-FF9900?style=for-the-badge&logo=amazon&logoColor=white" height="38" alt="Download Fire TV Stick APK" />
   </a>
   &nbsp;&nbsp;
-  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk">
     <img src="https://img.shields.io/badge/Download_For_Google_TV_%26_Android_TV-0080FF?style=for-the-badge&logo=google&logoColor=white" height="38" alt="Download Google TV APK" />
   </a>
   &nbsp;&nbsp;
-  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk">
     <img src="https://img.shields.io/badge/Download_Legacy_FireOS_5-6B7280?style=for-the-badge&logo=android&logoColor=white" height="38" alt="Download Legacy Fire OS 5 APK" />
   </a>
 </p>
@@ -170,9 +170,9 @@ Free up RAM instantly before opening demanding streaming apps or cloud gaming se
 
 1. Install the **Downloader** app from the Amazon Appstore or Google Play Store.
 2. Open Downloader and enter the direct download URL for your device:
-   - **Fire TV Stick**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk`
-   - **Google TV / Android TV**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk`
-   - **Legacy Fire OS 5 / Android TV**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk`
+   - **Fire TV Stick (Lite, 4K, Max)**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-FireTV-Stick-Lite-4K-FireOS7.apk`
+   - **Google TV & Android TV 9–14+**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-Universal-GoogleTV-AndroidTV.apk`
+   - **Legacy Fire OS 5 & Android TV 5–8**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/raw/main/releases/v1.1/OnFire-v1.1-Legacy-AndroidTV-FireOS5.apk`
 3. Click **Install**, then grant the install unknown apps permission.
 </details>
 
