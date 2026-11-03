@@ -83,11 +83,10 @@
             height: 1080px;
             pointer-events: none;
             z-index: 0;
+            background: #0b0f19 linear-gradient(180deg, #0b0f19 0%, #111827 50%, #030712 100%);
         }
 
-        .gpu-stabilized, .bg-layer, .fixed-backdrop, #main-viewport, #all-apps-grid, .tv-card-rect {
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
+        .gpu-stabilized, .tv-card-rect {
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
         }
@@ -96,8 +95,7 @@
             inset: 0;
             background-size: cover;
             background-position: center;
-            transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: opacity;
+            transition: opacity 0.8s ease-out;
         }
 
         /* HARDWARE-ACCELERATED TRANSLUCENT GLASS CARDS */
@@ -109,8 +107,6 @@
             box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18),
                         0 8px 20px rgba(0, 0, 0, 0.55);
             transition: transform 0.2s ease-out;
-            will-change: transform;
-            transform: translateZ(0);
             overflow: hidden;
             contain: paint;
         }
@@ -126,15 +122,86 @@
             z-index: 1;
         }
 
+        /* 16:9 ROUNDED BANNER APP TILE COMPONENT */
+        .app-tile-wrapper {
+            width: 304px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+            outline: none !important;
+            transition: opacity 0.25s ease-out;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tile-banner-card {
+            width: 304px;
+            height: 171px; /* 16:9 landscape aspect ratio (304 * 9 / 16 = 171) */
+            border-radius: 18px; /* 16dp - 20dp smooth rounded corners */
+            overflow: hidden; /* clip inner content to shape */
+            position: relative;
+            background: #1E242B; /* fallback dark slate */
+            border: 2.5px solid transparent; /* unfocused: no border */
+            box-sizing: border-box;
+            transition: transform 150ms cubic-bezier(0.2, 0.9, 0.3, 1), border-color 150ms ease-out, box-shadow 150ms ease-out;
+            transform: scale(1.0); /* unfocused: scale 1.0x */
+            contain: layout paint;
+        }
+
+        .tile-banner-label {
+            margin-top: 8px; /* 8dp top margin */
+            font-size: 14px; /* 14sp */
+            font-weight: 500;
+            color: #E0E0E0;
+            text-align: center;
+            width: 100%;
+            max-width: 304px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; /* single line with ellipsis */
+            opacity: 0; /* unfocused: hide text label below the tile */
+            visibility: hidden;
+            transition: opacity 150ms ease-out, visibility 150ms ease-out;
+            height: 20px;
+            line-height: 20px;
+            pointer-events: none;
+        }
+
+        /* Focused State:
+           - Scale 1.06x (150ms)
+           - 2.5dp crisp white border (#FFFFFF)
+           - Subtle elevation glow
+           - Reveal App Name centered directly below the tile (14sp, #E0E0E0, 8dp top margin, single line with ellipsis)
+        */
+        .app-tile-wrapper.focused .tile-banner-card {
+            transform: scale(1.06) !important;
+            border-color: #FFFFFF !important;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.75), 0 0 16px rgba(255, 255, 255, 0.3) !important;
+            z-index: 40 !important;
+        }
+
+        .app-tile-wrapper.focused .tile-banner-label {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .app-tile-wrapper.tv-focusable.focused {
+            transform: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+
         /* 6-COLUMN TV APP CARDS (EXACT MATCH TO USER REFERENCE PHOTO) */
         .tv-card-rect {
-            width: 310px !important;
-            height: 170px !important;
-            min-width: 310px !important;
-            min-height: 170px !important;
-            max-width: 310px !important;
-            max-height: 170px !important;
-            border-radius: 22px !important;
+            width: 304px !important;
+            height: 171px !important;
+            min-width: 304px !important;
+            min-height: 171px !important;
+            max-width: 304px !important;
+            max-height: 171px !important;
+            border-radius: 18px !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
             contain: layout paint !important;
@@ -150,42 +217,54 @@
             max-height: 70px;
         }
 
-        /* BASE FOCUSABLE CARD TRANSITION - 60FPS HARDWARE ACCELERATED */
+        /* BASE FOCUSABLE CARD TRANSITION - 60FPS HARDWARE ACCELERATED WITHOUT FLICKER */
         .tv-focusable {
             transition: transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.15s ease-out, border-color 0.15s ease-out;
             outline: none !important;
-            will-change: transform;
-            transform: translateZ(0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
         }
 
         /* CARD FOCUS MATCHING USER REFERENCE IMAGE (SILVER/WHITE SLEEK BORDER + ZOOM) */
         .tv-focusable.focused {
-            transform: scale(1.05) translateZ(0) !important;
+            transform: scale(1.05) !important;
             border: 2.5px solid rgba(255, 255, 255, 0.95) !important;
             outline: none !important;
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4), 0 14px 30px rgba(0, 0, 0, 0.92) !important;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.35), 0 12px 26px rgba(0, 0, 0, 0.85) !important;
             z-index: 40 !important;
             transition: transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 0.15s ease-out, border-color 0.15s ease-out !important;
         }
 
         /* Subtle ring for header elements */
         #profile-btn.focused, #btn-weather.focused {
-            transform: scale(1.06) translateZ(0) !important;
+            transform: scale(1.05) !important;
             border: 2px solid rgba(56, 189, 248, 0.8) !important;
             box-shadow: 0 0 25px rgba(56, 189, 248, 0.5) !important;
+        }
+
+        /* APPLE TV (tvOS) WEATHER MODAL FOCUS & STYLES */
+        #weather-modal .modal-item {
+            transition: transform 0.14s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.14s ease-out, box-shadow 0.14s ease-out, background-color 0.14s ease-out !important;
+        }
+        #weather-modal .modal-item.focused {
+            transform: scale(1.03) !important;
+            border-color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.45), 0 16px 40px rgba(0, 0, 0, 0.8) !important;
+            outline: none !important;
+            z-index: 30 !important;
+        }
+        #weather-modal input.modal-item.focused {
+            border-color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.45), 0 10px 30px rgba(0, 0, 0, 0.7) !important;
         }
 
         /* LOGO TRANSITION ON FOCUS */
         .app-icon-box {
             transition: transform 0.12s ease-out;
-            will-change: transform;
-            transform: translateZ(0);
         }
 
         .tv-focusable.focused .app-icon-box {
-            transform: scale(1.08) translateZ(0);
+            transform: scale(1.08);
         }
 
         /* ========================================================================= */
@@ -195,7 +274,6 @@
             display: inline-block;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            transform: translateZ(0);
         }
 
         .clock-colon-box {
@@ -203,7 +281,6 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transform: translateZ(0);
         }
 
         /* 1. IPHONE FACE (DEFAULT): Solid, crisp, sharp TV system font - 2X SCALED */
@@ -449,7 +526,7 @@
             border: none !important;
         }
         .dropdown-row.focused {
-            transform: scale(1.02) translateZ(0) !important;
+            transform: scale(1.02) !important;
             background: #2563eb !important; /* Clean solid blue highlight */
             color: #ffffff !important;
             box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
@@ -470,9 +547,7 @@
 
         /* FLOATING APP DOCK CONTAINER (AS SEEN IN IMAGE 1 & 3) */
         #dock-container {
-            background: rgba(18, 20, 28, 0.75);
-            backdrop-filter: blur(28px);
-            -webkit-backdrop-filter: blur(28px);
+            background: rgba(18, 20, 28, 0.88);
             border: 1.5px solid rgba(255, 255, 255, 0.22);
             border-radius: 36px;
             padding: 18px 28px;
@@ -511,33 +586,38 @@
         }
 
         
-        /* BOTTOM APPS DRAWER WITH TRANSITION & FADE BEHIND CLOCK/WEATHER WITHOUT BLUR */
+        /* BOTTOM APPS DRAWER STRICTLY CLIPPED BELOW WEATHER WIDGET (STATIONARY HEADER) */
         #apps-drawer {
             position: fixed;
-            inset: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 745px;
+            height: 335px;
             width: 1920px;
-            height: 1080px;
-            z-index: 15;
+            z-index: 35;
             pointer-events: none;
-            transform: translateY(100%);
+            transform: translate3d(0, 100%, 0);
             opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out;
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,0.65) 28%, rgba(0,0,0,0.15) 33%, rgba(0,0,0,0) 36%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 22%, rgba(0,0,0,0.65) 28%, rgba(0,0,0,0.15) 33%, rgba(0,0,0,0) 36%, rgba(0,0,0,0) 100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out;
+            background: linear-gradient(to top, rgba(3, 7, 18, 0.98) 0%, rgba(3, 7, 18, 0.92) 200px, rgba(3, 7, 18, 0.75) 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* STRICT CLIPPING: nothing ever goes above top: 745px! */
         }
         #apps-drawer.open {
-            transform: translateY(0);
+            transform: translate3d(0, 0, 0);
             opacity: 1;
             pointer-events: auto;
         }
         #apps-drawer-scroll {
             width: 1920px;
-            height: 1080px;
+            flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding-top: 832px;
-            padding-bottom: 80px;
             box-sizing: border-box;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 16px, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0px, black 16px, black 100%);
         }
 
         /* Spin Animation for RAM Cleaner */
@@ -561,45 +641,169 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- MODAL 1: WEATHER LOCATION MODAL (PRESERVED EXACTLY)                      -->
+    <!-- MODAL 1: WEATHER LOCATION MODAL (MODERN SPOTLIGHT SEARCH UI)             -->
     <!-- ========================================================================= -->
-    <div id="weather-modal" onclick="if (event.target === this) closeWeatherModal();" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-150">
-        <div id="weather-box" class="glass-black-card p-8 max-w-lg w-full mx-4 text-center transform scale-95 transition-all duration-150 border-2 border-white/40 shadow-2xl">
-            <div class="w-16 h-16 bg-blue-500/25 border border-blue-300/40 rounded-2xl mx-auto flex items-center justify-center text-3xl text-blue-300 mb-4 shadow-lg">
-                <i class="fa-solid fa-cloud-sun-rain"></i>
-            </div>
-            <h3 class="text-2xl font-black text-white mb-1">Google Weather Location</h3>
-            <p class="text-xs text-gray-200 mb-5 font-semibold">Select your city for real-time live weather & forecasts</p>
+    <div id="weather-modal" onclick="if (event.target === this) closeWeatherModal();" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div id="weather-box" class="relative w-[1300px] max-w-[95vw] h-[820px] max-h-[90vh] mx-auto flex flex-col justify-between bg-gradient-to-b from-[#1c2436]/95 via-[#111726]/98 to-[#090d16]/99 border border-white/20 shadow-[0_35px_120px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.25)] rounded-[38px] p-8 overflow-hidden transform scale-95 transition-all duration-200">
             
-            <!-- Quick City Pills -->
-            <div id="city-pills" class="grid grid-cols-3 gap-2.5 mb-5">
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Deoband">Deoband</button>
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="New Delhi">New Delhi</button>
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Mumbai">Mumbai</button>
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Bengaluru">Bengaluru</button>
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="Dubai">Dubai</button>
-                <button class="tv-focusable modal-item py-3 px-3 rounded-xl glass-black-card text-xs font-bold text-white hover:border-white transition-all" data-city="London">London</button>
+            <!-- Top Apple TV Header Bar -->
+            <div class="flex items-center justify-between pb-5 border-b border-white/10 shrink-0">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-400/25 to-blue-600/35 border border-white/25 flex items-center justify-center text-sky-300 text-3xl shadow-lg shrink-0">
+                        <i class="fa-solid fa-cloud-sun-rain"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-[11px] font-bold tracking-[0.22em] uppercase text-sky-400 block mb-0.5">WEATHER FORECAST • SPOTLIGHT SEARCH</span>
+                        <h3 class="text-3xl font-extrabold text-white tracking-tight leading-tight">Choose Location</h3>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3.5">
+                    <!-- Live Status Capsule -->
+                    <div class="flex items-center space-x-2.5 px-4 py-2 rounded-full bg-white/[0.08] border border-white/15 shadow-inner text-xs font-semibold text-white/80">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-white/60">Current:</span>
+                        <strong id="weather-current-city-label" class="text-white font-bold">Deoband</strong>
+                        <span class="text-white/20">•</span>
+                        <span id="weather-current-summary" class="text-sky-300 font-bold">27°C Clear</span>
+                    </div>
+
+                    <!-- Dismiss Button -->
+                    <button id="weather-close" onclick="closeWeatherModal();" class="tv-focusable modal-item px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.18] border border-white/20 text-white font-bold text-sm flex items-center space-x-2 cursor-pointer transition-all shadow-lg">
+                        <i class="fa-solid fa-xmark text-sm text-white/70"></i>
+                        <span>Dismiss</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Custom Input -->
-            <div class="flex items-center space-x-2.5 mb-5">
-                <input id="weather-input" type="text" placeholder="Type city name..." class="tv-focusable modal-item flex-1 py-3 px-4 rounded-xl bg-black/60 border-2 border-white/40 text-white text-sm placeholder-gray-400 focus:border-blue-400 font-bold">
-                <button id="btn-save-weather" class="tv-focusable modal-item py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white text-sm font-extrabold rounded-xl transition-all shadow-lg">Save</button>
+            <!-- Two-Column Main Content (5 Cols Left, 7 Cols Right) -->
+            <div class="grid grid-cols-12 gap-6 flex-1 my-5 min-h-0 text-left">
+
+                <!-- Left Column (5 Cols): Search Bar & Popular Destinations -->
+                <div class="col-span-5 flex flex-col justify-between bg-white/[0.04] border border-white/10 rounded-3xl p-6 min-h-0 shadow-inner">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-magnifying-glass text-sky-400 text-xs"></i>
+                            <span>Search Worldwide</span>
+                        </span>
+                        <div class="relative rounded-2xl bg-white/[0.07] border border-white/15 focus-within:border-white focus-within:bg-white/[0.14] transition-all mb-3">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-base"></i>
+                            <input id="weather-input" type="text" placeholder="Search city or region..." class="tv-focusable modal-item w-full py-3.5 pl-12 pr-4 rounded-2xl bg-transparent border-0 text-white text-lg placeholder-white/35 font-semibold focus:outline-none">
+                        </div>
+                        <button id="btn-save-weather" class="tv-focusable modal-item w-full py-3.5 bg-gradient-to-r from-sky-500/80 to-blue-600/80 hover:from-sky-400 hover:to-blue-500 text-white text-base font-bold rounded-2xl transition-all shadow-[0_8px_20px_rgba(14,165,233,0.3)] flex items-center justify-center space-x-2.5 cursor-pointer border border-sky-300/30">
+                            <i class="fa-solid fa-arrow-right text-sm"></i>
+                            <span>Search Location</span>
+                        </button>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-compass text-amber-400 text-xs"></i>
+                            <span>Popular Destinations</span>
+                        </span>
+                        <div id="city-pills" class="grid grid-cols-2 gap-3">
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="Deoband">
+                                <span class="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-rose-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">Deoband</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">Uttar Pradesh, IN</span>
+                                </span>
+                            </button>
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="New Delhi">
+                                <span class="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-landmark"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">New Delhi</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">Capital Region, IN</span>
+                                </span>
+                            </button>
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="Mumbai">
+                                <span class="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-water"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">Mumbai</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">Maharashtra, IN</span>
+                                </span>
+                            </button>
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="Bengaluru">
+                                <span class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-laptop-code"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">Bengaluru</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">Karnataka, IN</span>
+                                </span>
+                            </button>
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="Dubai">
+                                <span class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-sun"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">Dubai</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">United Arab Emirates</span>
+                                </span>
+                            </button>
+                            <button class="tv-focusable modal-item p-3 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left flex items-center space-x-3 transition-all cursor-pointer" data-city="London">
+                                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 text-xs shrink-0">
+                                    <i class="fa-solid fa-cloud-rain"></i>
+                                </span>
+                                <span class="min-w-0 block">
+                                    <span class="text-sm font-bold text-white block truncate leading-tight">London</span>
+                                    <span class="text-[11px] font-medium text-white/50 block truncate">United Kingdom</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (7 Cols): Suggested Locations List -->
+                <div id="weather-suggestions-box" class="col-span-7 flex flex-col bg-white/[0.04] border border-white/10 rounded-3xl p-6 min-h-0 shadow-inner">
+                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-white/10 shrink-0">
+                        <span id="weather-suggestions-title" class="text-[11px] font-bold uppercase tracking-wider text-white/60 flex items-center space-x-2">
+                            <i class="fa-solid fa-map-location-dot text-sky-400 text-xs"></i>
+                            <span>Search Results & Suggestions</span>
+                        </span>
+                        <span id="weather-suggestions-count" class="text-xs text-white/70 font-semibold bg-white/[0.08] border border-white/10 px-3 py-1 rounded-full"></span>
+                    </div>
+                    <div id="weather-suggestions-list" class="space-y-3 overflow-y-auto flex-1 pr-2" style="max-height: 500px;">
+                        <!-- Populated dynamically with cards -->
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Cancel / Back Button -->
-            <button id="weather-close" onclick="closeWeatherModal();" class="tv-focusable modal-item w-full py-3.5 glass-black-card border-2 border-white/40 text-white hover:border-white text-sm font-black rounded-xl transition-all shadow-xl flex items-center justify-center space-x-2 cursor-pointer">
-                <i class="fa-solid fa-arrow-left text-xs"></i>
-                <span>Cancel / Back to Home</span>
-            </button>
+            <!-- Footer Bar: Remote Navigation Hint -->
+            <div class="pt-4 border-t border-white/10 flex items-center text-xs text-white/50 font-medium px-2 shrink-0">
+                <div class="flex items-center space-x-3">
+                    <span class="flex items-center space-x-1.5">
+                        <span class="px-2 py-0.5 rounded-md bg-white/10 text-white font-mono text-[10px] border border-white/15">D-PAD</span>
+                        <span>Navigate</span>
+                    </span>
+                    <span class="text-white/20">•</span>
+                    <span class="flex items-center space-x-1.5">
+                        <span class="px-2 py-0.5 rounded-md bg-white/10 text-white font-mono text-[10px] border border-white/15">OK</span>
+                        <span>Select Location</span>
+                    </span>
+                    <span class="text-white/20">•</span>
+                    <span class="flex items-center space-x-1.5">
+                        <span class="px-2 py-0.5 rounded-md bg-white/10 text-white font-mono text-[10px] border border-white/15">BACK</span>
+                        <span>Dismiss</span>
+                    </span>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- ========================================================================= -->
     <!-- TOP-RIGHT LIST-STYLE SETTINGS MENU (APPLE TV / FIRE TV STYLE)             -->
     <!-- ========================================================================= -->
-    <div id="launcher-settings-modal" onclick="if (event.target === this) closeLauncherSettings();" class="fixed inset-0 z-50 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200">
-        <div id="launcher-settings-box" class="absolute top-6 right-10 w-[580px] max-h-[980px] bg-[#0c101a]/50 backdrop-blur-xl border-2 border-white/20 rounded-3xl p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-y-auto transform translate-y-[-10px] scale-95 transition-all duration-200">
+    <div id="launcher-settings-modal" onclick="if (event.target === this) closeLauncherSettings();" class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div id="launcher-settings-box" class="absolute top-6 right-10 w-[580px] max-h-[980px] bg-[#0c101a]/95 border-2 border-white/20 rounded-3xl p-7 text-left shadow-[0_25px_80px_rgba(0,0,0,0.85)] overflow-y-auto transform translate-y-[-10px] scale-95 transition-all duration-200">
             
             <!-- Header -->
             <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
@@ -750,6 +954,32 @@
     </div>
 
     <!-- ========================================================================= -->
+    <!-- MODAL 3: ALL APPLICATIONS SCREEN (EXCLUDES SYSTEM BACKGROUND APPS)       -->
+    <!-- ========================================================================= -->
+    <div id="all-apps-modal" onclick="if (event.target === this) closeAllAppsModal();" class="fixed inset-0 z-50 flex flex-col bg-black/95 opacity-0 pointer-events-none transition-all duration-200 p-12">
+        <div class="flex justify-between items-center mb-6 px-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 text-2xl shadow-lg">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-white tracking-wide">ALL APPLICATIONS</h2>
+                    <p class="text-xs font-bold text-sky-300">All installed applications • Background system apps excluded</p>
+                </div>
+            </div>
+            <button id="all-apps-close-btn" class="tv-focusable modal-item px-6 py-2.5 rounded-full glass-black-card text-sm font-bold text-white border border-white/20 hover:border-white transition-all cursor-pointer" onclick="closeAllAppsModal();">
+                ✕ Back to Home
+            </button>
+        </div>
+
+        <div id="modal-apps-scroll" class="flex-1 overflow-y-auto px-4 py-2" style="max-height: 860px;">
+            <div id="modal-all-apps-grid" style="display: grid; grid-template-columns: repeat(5, 304px); column-gap: 36px; row-gap: 28px; justify-content: center; margin: 0 auto; padding-bottom: 60px;">
+                <!-- Populated with all installed apps -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
     <!-- SCREEN 1: LARGE CRISP CLOCK + INTEGRATED WEATHER + RECENT APPS            -->
     <!-- ========================================================================= -->
         <!-- ========================================================================= -->
@@ -758,10 +988,10 @@
         <!-- ========================================================================= -->
     <!-- SCREEN 1: CLOCK & WEATHER (DEAD CENTER IN THE MIDDLE OF THE SCREEN)      -->
     <!-- ========================================================================= -->
-    <section id="hero-section" class="fixed inset-0 w-[1920px] h-[1080px] pointer-events-none z-25 overflow-hidden">
+    <section id="hero-section" class="fixed inset-0 w-[1920px] h-[1080px] pointer-events-none overflow-hidden" style="z-index: 30;">
         
-        <!-- TOP HEADER: BRAND PROFILE (LEFT) & STATUS (RIGHT) -->
-        <header class="absolute top-6 left-14 right-14 flex justify-between items-center z-30 pointer-events-auto">
+        <!-- TOP HEADER: BRAND PROFILE (LEFT) & STATUS (RIGHT) - REMOVED AS REQUESTED -->
+        <header class="absolute top-6 left-14 right-14 flex justify-between items-center z-30 pointer-events-auto" style="display: none !important;">
             <div class="flex items-center space-x-3.5">
                 <div id="profile-btn" tabindex="0" class="tv-focusable glass-black-card h-12 px-5 flex items-center space-x-3 cursor-pointer group" data-action="profile">
                     <div class="w-7 h-7 rounded-lg overflow-hidden bg-black/60 flex items-center justify-center border border-white/30 shrink-0">
@@ -786,7 +1016,7 @@
 
                 <div class="glass-black-card h-12 px-5 flex items-center space-x-3 text-xs font-bold text-gray-200 rounded-full">
                     <span class="flex items-center space-x-1.5 text-emerald-400">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                         <span id="tv-platform-badge">Fire OS 7.7.1</span>
                     </span>
                     <span class="text-white/30">|</span>
@@ -816,47 +1046,48 @@
             </div>
 
             <!-- 3. GOOGLE WEATHER WIDGET (CENTERED BELOW CLOCK) -->
-            <div id="weather-fixed-bar" class="flex items-center justify-center pointer-events-auto mt-5 mb-2">
-                <button id="btn-weather" tabindex="0" class="tv-focusable inline-flex items-center space-x-4 px-8 py-3 rounded-full glass-black-card text-base font-bold text-white border-2 border-white/30 cursor-pointer shadow-2xl hover:border-white transition-all" data-action="weather">
-                    <svg class="w-7 h-7 shrink-0 drop-shadow" viewBox="0 0 24 24">
+            <div id="weather-fixed-bar" class="flex items-center justify-center pointer-events-auto mt-4 mb-2">
+                <button id="btn-weather" onclick="openWeatherModal();" tabindex="0" class="tv-focusable inline-flex items-center space-x-5 px-12 py-3.5 rounded-full glass-black-card text-white border-2 border-white/35 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.7)] hover:border-white transition-all" data-action="weather">
+                    <svg class="w-11 h-11 shrink-0 drop-shadow" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z"/>
                         <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.12C3.26 21.36 7.33 24 12 24z"/>
                         <path fill="#FBBC05" d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.59H1.27C.46 8.2.005 10.04.005 12c0 1.96.46 3.8 1.265 5.41l4.01-3.12z"/>
                         <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.27 6.59l4.01 3.12c.95-2.83 3.6-4.96 6.72-4.96z"/>
                     </svg>
-                    <span id="weather-temp" class="text-white font-black text-2xl drop-shadow">24°C</span>
-                    <span id="weather-desc-text" class="text-sky-100 font-extrabold text-base drop-shadow">Sunny</span>
-                    <i id="weather-icon" class="fa-solid fa-cloud text-amber-300 text-xl drop-shadow"></i>
-                    <span class="text-white/30 text-base">•</span>
+                    <span id="weather-temp" class="text-white font-black text-4xl drop-shadow">24°C</span>
+                    <span id="weather-desc-text" class="text-sky-100 font-extrabold text-2xl drop-shadow">Sunny</span>
+                    <i id="weather-icon" class="fa-solid fa-cloud text-amber-300 text-3xl drop-shadow"></i>
+                    <span class="text-white/40 text-xl">•</span>
                     <span class="flex items-center space-x-2 text-sky-200">
-                        <i class="fa-solid fa-location-dot text-red-400 text-sm"></i>
-                        <span id="weather-city" class="text-base font-black">Deoband</span>
+                        <i class="fa-solid fa-location-dot text-red-400 text-xl"></i>
+                        <span id="weather-city" class="text-2xl font-black text-white">Deoband</span>
                     </span>
-                    <span class="text-white/30 text-base">•</span>
-                    <span id="weather-humidity-text" class="text-sm font-bold text-gray-200">67% Hum</span>
+                    <span class="text-white/40 text-xl">•</span>
+                    <span id="weather-humidity-text" class="text-lg font-extrabold text-gray-200">67% Hum</span>
                 </button>
             </div>
         </div>
     </section>
 
     <!-- ========================================================================= -->
-    <!-- APPLICATION SECTION: FADES BEHIND WEATHER & CLOCK WITHOUT BLUR           -->
+    <!-- APPLICATION SECTION: PINNED HEADER & CLIPPED SCROLL BELOW WEATHER WIDGET  -->
     <!-- ========================================================================= -->
     <div id="apps-drawer">
+        <!-- Pinned / Stationary Header that NEVER scrolls up -->
+        <div id="apps-header-fixed" class="w-[1664px] mx-auto flex justify-between items-center pt-2 pb-2 px-1 shrink-0">
+            <h2 class="text-sm font-black tracking-wider uppercase text-gray-200 flex items-center space-x-2">
+                <i class="fa-solid fa-shapes text-sky-400 text-sm"></i>
+                <span>Applications</span>
+            </h2>
+            <span class="text-xs text-sky-300 font-extrabold bg-white/10 px-3.5 py-1 rounded-full border border-white/15">
+                Press UP to hide apps • 5 Cards Per Row
+            </span>
+        </div>
+
         <div id="apps-drawer-scroll">
-            <div style="width: 1694px; margin: 0 auto;">
-                <div class="flex justify-between items-center mb-3 px-1">
-                    <h2 class="text-sm font-black tracking-wider uppercase text-gray-200 flex items-center space-x-2">
-                        <i class="fa-solid fa-shapes text-sky-400 text-sm"></i>
-                        <span>Applications</span>
-                    </h2>
-                    <span class="text-xs text-sky-300 font-extrabold bg-white/10 px-3.5 py-1 rounded-full border border-white/15">
-                        Press UP to hide apps • 5 Cards Per Row
-                    </span>
-                </div>
-                
-                <div id="all-apps-grid" style="display: grid; grid-template-columns: repeat(5, 310px); column-gap: 36px; row-gap: 26px; justify-content: center; width: 1694px; margin: 0 auto;">
-                    <!-- Injected dynamically -->
+            <div style="width: 1664px; margin: 0 auto; padding-top: 4px; padding-bottom: 24px;">
+                <div id="all-apps-grid" style="display: grid; grid-template-columns: repeat(5, 304px); column-gap: 36px; row-gap: 20px; justify-content: center; width: 1664px; margin: 0 auto;">
+                    <!-- Injected dynamically with 16:9 Banner vs Icon Fallback Cards -->
                 </div>
             </div>
         </div>
@@ -917,7 +1148,7 @@
         let currentWallpaperIndex = 0;
         let activeLayer = 1;
         let wallpaperTimer = null;
-        let currentWallpaperSpeed = localStorage.getItem('onfire_wallpaper_speed') || 'normal';
+        let currentWallpaperSpeed = localStorage.getItem('onfire_wallpaper_speed') || 'off';
 
         // --- 2. THEME ENGINE (ALPINE GLASS, SUNSET MINIMAL, SUBMERGED GLACIER, MIDNIGHT OLED) ---
         const themeWallpapers = {
@@ -956,8 +1187,9 @@
         }
 
         function cycleWallpaper() {
-            currentWallpaperIndex = (currentWallpaperIndex + 1) % wallpaperList.length;
-            const nextUrl = wallpaperList[currentWallpaperIndex];
+            if (currentWallpaperSpeed === 'off' || currentWallpaperSpeed === 'static') return;
+            const nextIdx = (currentWallpaperIndex + 1) % wallpaperList.length;
+            const nextUrl = wallpaperList[nextIdx];
             const nextLayerNum = activeLayer === 1 ? 2 : 1;
             const currentLayerEl = document.getElementById(`bg-layer-${activeLayer}`);
             const nextLayerEl = document.getElementById(`bg-layer-${nextLayerNum}`);
@@ -968,9 +1200,15 @@
                     nextLayerEl.style.backgroundImage = `url('${nextUrl}')`;
                     nextLayerEl.classList.remove('opacity-0');
                     nextLayerEl.classList.add('opacity-100');
-                    currentLayerEl.classList.remove('opacity-100');
-                    currentLayerEl.classList.add('opacity-0');
-                    activeLayer = nextLayerNum;
+                    setTimeout(() => {
+                        currentLayerEl.classList.remove('opacity-100');
+                        currentLayerEl.classList.add('opacity-0');
+                        activeLayer = nextLayerNum;
+                        currentWallpaperIndex = nextIdx;
+                    }, 50);
+                };
+                img.onerror = () => {
+                    console.warn("Wallpaper failed to load, keeping current wallpaper.");
                 };
                 img.src = nextUrl;
             }
@@ -979,17 +1217,24 @@
         function getWallpaperSpeedInterval(speed) {
             if (speed === 'slow') return 600000; // 10 minutes
             if (speed === 'fast') return 60000;  // 1 minute
+            if (speed === 'off' || speed === 'static') return 0;
             return 300000;                       // 5 minutes (normal)
         }
 
         function applyWallpaperSpeed(speed) {
-            const valid = ['slow', 'normal', 'fast'];
-            if (!valid.includes(speed)) speed = 'normal';
+            const valid = ['off', 'static', 'slow', 'normal', 'fast'];
+            if (!valid.includes(speed)) speed = 'off';
             currentWallpaperSpeed = speed;
             localStorage.setItem('onfire_wallpaper_speed', speed);
 
-            if (wallpaperTimer) clearInterval(wallpaperTimer);
-            wallpaperTimer = setInterval(cycleWallpaper, getWallpaperSpeedInterval(speed));
+            if (wallpaperTimer) {
+                clearInterval(wallpaperTimer);
+                wallpaperTimer = null;
+            }
+            const interval = getWallpaperSpeedInterval(speed);
+            if (interval > 0) {
+                wallpaperTimer = setInterval(cycleWallpaper, interval);
+            }
 
             document.querySelectorAll('.wallpaper-speed-btn').forEach(btn => {
                 if (btn.getAttribute('data-speed') === speed) {
@@ -1122,59 +1367,310 @@
             } catch (e) {}
         };
 
+        window.setWeatherCity = function(city) {
+            if (!city) return;
+            const trimmed = city.trim();
+            if (trimmed) {
+                currentWeatherCity = trimmed;
+                fetchLiveWeather(trimmed);
+                if (weatherInput) weatherInput.value = '';
+                closeWeatherModal();
+                if (window.Android && typeof window.Android.showToast === 'function') {
+                    window.Android.showToast("Loading weather for " + trimmed + "...");
+                }
+            }
+        };
+
         function fetchLiveWeather(city) {
+            if (!city) city = 'Deoband';
             if (window.Android && typeof window.Android.fetchWeather === 'function') {
                 window.Android.fetchWeather(city);
             }
-            fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+            // Open-Meteo High-Speed Geocoding and Weather Forecast
+            fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`)
                 .then(res => res.json())
-                .then(data => window.onGoogleWeatherLoaded(data, city))
-                .catch(() => {});
+                .then(geo => {
+                    if (geo && geo.results && geo.results.length > 0) {
+                        const r = geo.results[0];
+                        const resolvedName = r.name || city;
+                        return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${r.latitude}&longitude=${r.longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`)
+                            .then(res2 => res2.json())
+                            .then(w => {
+                                if (w && w.current) {
+                                    const temp = Math.round(w.current.temperature_2m) + "°C";
+                                    const humidity = Math.round(w.current.relative_humidity_2m) + "% Hum";
+                                    const code = w.current.weather_code;
+                                    let desc = "Clear";
+                                    let iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                                    if (code === 0) {
+                                        desc = "Clear";
+                                        iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 1 && code <= 3) {
+                                        desc = (code === 3) ? "Overcast" : "Partly Cloudy";
+                                        iconClass = "fa-solid fa-cloud-sun text-amber-300 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 45 && code <= 48) {
+                                        desc = "Foggy";
+                                        iconClass = "fa-solid fa-smog text-gray-300 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 51 && code <= 67) {
+                                        desc = "Rainy";
+                                        iconClass = "fa-solid fa-cloud-showers-heavy text-blue-400 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 71 && code <= 77) {
+                                        desc = "Snow";
+                                        iconClass = "fa-solid fa-snowflake text-sky-200 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 80 && code <= 82) {
+                                        desc = "Showers";
+                                        iconClass = "fa-solid fa-cloud-rain text-blue-400 text-3xl md:text-4xl drop-shadow";
+                                    } else if (code >= 95) {
+                                        desc = "Thunderstorm";
+                                        iconClass = "fa-solid fa-cloud-bolt text-amber-400 text-3xl md:text-4xl drop-shadow";
+                                    }
+                                    applyWeatherUI(resolvedName, temp, desc, humidity, iconClass);
+                                }
+                            });
+                    }
+                })
+                .catch(err => {
+                    console.warn("Weather fetch fallback", err);
+                });
         }
 
         applyWeatherUI(currentWeatherCity, currentWeatherTemp, currentWeatherDesc, currentWeatherHumidity, "fa-solid fa-cloud text-gray-300 text-3xl md:text-4xl drop-shadow");
         fetchLiveWeather(currentWeatherCity);
         setInterval(() => fetchLiveWeather(currentWeatherCity), 900000); // 15 mins
 
-        // Weather Modal Event Handlers
+        // Weather Modal Event Handlers & Location Suggestions Engine
         const weatherModal = document.getElementById('weather-modal');
         const weatherBox = document.getElementById('weather-box');
         const cityPills = document.querySelectorAll('#city-pills button');
         const weatherInput = document.getElementById('weather-input');
         const btnSaveWeather = document.getElementById('btn-save-weather');
         const weatherClose = document.getElementById('weather-close');
+        const weatherSuggestionsList = document.getElementById('weather-suggestions-list');
+        const weatherSuggestionsCount = document.getElementById('weather-suggestions-count');
         let isWeatherModalOpen = false;
-        let currentWeatherModalIndex = 0;
+        let activeWeatherModalElement = null;
+        let suggestionDebounceTimer = null;
 
-        function setWeatherModalFocus(index) {
-            const modalItems = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
-            if (!modalItems.length) return;
-            modalItems.forEach(item => item.classList.remove('focused'));
-            currentWeatherModalIndex = Math.max(0, Math.min(index, modalItems.length - 1));
-            const el = modalItems[currentWeatherModalIndex];
-            if (el) {
-                el.classList.add('focused');
-                el.focus({ preventScroll: true });
-                playTvSound('focus');
+        const defaultLocationSuggestions = [
+            { name: "Deoband", admin1: "Uttar Pradesh", country: "India", latitude: 29.6975, longitude: 77.6781 },
+            { name: "New Delhi", admin1: "Delhi", country: "India", latitude: 28.6139, longitude: 77.2090 },
+            { name: "Mumbai", admin1: "Maharashtra", country: "India", latitude: 19.0760, longitude: 72.8777 },
+            { name: "Bengaluru", admin1: "Karnataka", country: "India", latitude: 12.9716, longitude: 77.5946 },
+            { name: "Dubai", admin1: "Dubai", country: "United Arab Emirates", latitude: 25.2048, longitude: 55.2708 },
+            { name: "London", admin1: "England", country: "United Kingdom", latitude: 51.5074, longitude: -0.1278 }
+        ];
+
+        function setWeatherModalElementFocus(el) {
+            if (!el) return;
+            const items = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
+            items.forEach(item => {
+                item.classList.remove('focused');
+                if (item !== el && typeof item.blur === 'function') {
+                    item.blur();
+                }
+            });
+            activeWeatherModalElement = el;
+            el.classList.add('focused');
+            if (typeof el.focus === 'function') {
+                el.focus({ preventScroll: false });
             }
+            if (el.scrollIntoView) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            playTvSound('focus');
+        }
+
+        function renderLocationSuggestions(list) {
+            if (!weatherSuggestionsList) return;
+            weatherSuggestionsList.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                weatherSuggestionsList.innerHTML = `
+                    <div class="px-6 py-8 rounded-2xl bg-white/[0.04] border border-white/10 text-base font-semibold text-white/60 text-center flex flex-col items-center justify-center space-y-2">
+                        <i class="fa-solid fa-circle-question text-sky-400 text-3xl"></i>
+                        <span class="text-white font-bold text-lg">No matching locations found</span>
+                        <span class="text-sm text-white/40">Try typing a different city or region in the search bar.</span>
+                    </div>
+                `;
+                if (weatherSuggestionsCount) weatherSuggestionsCount.innerText = '0 locations';
+                return;
+            }
+
+            if (weatherSuggestionsCount) {
+                weatherSuggestionsCount.innerText = `${list.length} locations`;
+            }
+
+            list.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = "tv-focusable modal-item weather-suggest-item w-full flex items-center justify-between p-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/12 text-left cursor-pointer transition-all duration-150";
+                btn.setAttribute('tabindex', '0');
+                btn.setAttribute('data-name', item.name);
+                btn.setAttribute('data-lat', item.latitude);
+                btn.setAttribute('data-lon', item.longitude);
+
+                const subtitle = [item.admin1, item.country].filter(Boolean).join(', ');
+                const latLonStr = (item.latitude != null && item.longitude != null)
+                    ? `${Number(item.latitude).toFixed(1)}°, ${Number(item.longitude).toFixed(1)}°`
+                    : '';
+
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400/20 to-blue-600/30 border border-white/20 flex items-center justify-center text-sky-300 text-lg shadow-md shrink-0">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div>
+                            <span class="text-white font-bold text-xl block leading-tight tracking-tight">${item.name}</span>
+                            <span class="text-white/60 text-sm font-medium mt-0.5 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-globe text-xs text-sky-400/70"></i>
+                                <span>${subtitle || 'Global'}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 pointer-events-none">
+                        ${latLonStr ? `<span class="text-[11px] font-mono text-white/40 bg-white/[0.06] px-2.5 py-1 rounded-lg border border-white/10">${latLonStr}</span>` : ''}
+                        <span class="text-xs text-white font-bold bg-white/20 px-3.5 py-1.5 rounded-full border border-white/30 flex items-center space-x-1.5 shadow">
+                            <span>Select</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-white/70"></i>
+                        </span>
+                    </div>
+                `;
+
+                btn.addEventListener('click', () => {
+                    selectLocationCoords(item.name, item.latitude, item.longitude);
+                });
+
+                btn.addEventListener('focus', () => {
+                    const items = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
+                    items.forEach(it => it.classList.remove('focused'));
+                    btn.classList.add('focused');
+                    activeWeatherModalElement = btn;
+                });
+
+                weatherSuggestionsList.appendChild(btn);
+            });
+        }
+
+        function fetchLocationSuggestions(query) {
+            const trimmed = query ? query.trim() : '';
+            if (!trimmed) {
+                renderLocationSuggestions(defaultLocationSuggestions);
+                return;
+            }
+
+            fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=6&language=en&format=json`)
+                .then(res => res.json())
+                .then(geo => {
+                    if (geo && geo.results && geo.results.length > 0) {
+                        renderLocationSuggestions(geo.results);
+                    } else {
+                        renderLocationSuggestions([]);
+                    }
+                })
+                .catch(() => {
+                    const filtered = defaultLocationSuggestions.filter(item =>
+                        item.name.toLowerCase().includes(trimmed.toLowerCase()) ||
+                        (item.admin1 && item.admin1.toLowerCase().includes(trimmed.toLowerCase())) ||
+                        (item.country && item.country.toLowerCase().includes(trimmed.toLowerCase()))
+                    );
+                    renderLocationSuggestions(filtered);
+                });
+        }
+
+        function selectLocationCoords(name, lat, lon) {
+            if (!name || lat == null || lon == null) {
+                setWeatherCity(name);
+                return;
+            }
+            currentWeatherCity = name;
+            closeWeatherModal();
+            if (window.Android && typeof window.Android.showToast === 'function') {
+                window.Android.showToast(`Loading weather for ${name}...`);
+            }
+
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`)
+                .then(res => res.json())
+                .then(w => {
+                    if (w && w.current) {
+                        const temp = Math.round(w.current.temperature_2m) + "°C";
+                        const humidity = Math.round(w.current.relative_humidity_2m) + "% Hum";
+                        const code = w.current.weather_code;
+                        let desc = "Clear";
+                        let iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                        if (code === 0) {
+                            desc = "Clear";
+                            iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 1 && code <= 3) {
+                            desc = (code === 3) ? "Overcast" : "Partly Cloudy";
+                            iconClass = "fa-solid fa-cloud-sun text-amber-300 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 45 && code <= 48) {
+                            desc = "Foggy";
+                            iconClass = "fa-solid fa-smog text-gray-300 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 51 && code <= 67) {
+                            desc = "Rainy";
+                            iconClass = "fa-solid fa-cloud-showers-heavy text-blue-400 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 71 && code <= 77) {
+                            desc = "Snow";
+                            iconClass = "fa-solid fa-snowflake text-sky-200 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 80 && code <= 82) {
+                            desc = "Showers";
+                            iconClass = "fa-solid fa-cloud-rain text-blue-400 text-3xl md:text-4xl drop-shadow";
+                        } else if (code >= 95) {
+                            desc = "Thunderstorm";
+                            iconClass = "fa-solid fa-cloud-bolt text-amber-400 text-3xl md:text-4xl drop-shadow";
+                        }
+                        applyWeatherUI(name, temp, desc, humidity, iconClass);
+                    }
+                })
+                .catch(() => {
+                    setWeatherCity(name);
+                });
         }
 
         window.openWeatherModal = function() {
             isWeatherModalOpen = true;
-            weatherModal.classList.remove('opacity-0', 'pointer-events-none');
-            weatherBox.classList.remove('scale-95');
-            weatherBox.classList.add('scale-100');
+            if (currentActiveElement) {
+                currentActiveElement.classList.remove('focused');
+            }
+            if (weatherModal) {
+                weatherModal.classList.remove('opacity-0', 'pointer-events-none');
+                weatherModal.classList.add('opacity-100', 'pointer-events-auto');
+            }
+            if (weatherBox) {
+                weatherBox.classList.remove('scale-95');
+                weatherBox.classList.add('scale-100');
+            }
+            // Update current weather badges in header
+            const cityLabel = document.getElementById('weather-current-city-label');
+            if (cityLabel) cityLabel.innerText = currentWeatherCity || 'Deoband';
+            const summaryLabel = document.getElementById('weather-current-summary');
+            if (summaryLabel) summaryLabel.innerText = `${currentWeatherTemp || '27°C'} ${currentWeatherDesc || 'Clear'}`;
+
+            // Populate initial suggested locations
+            const initialQuery = weatherInput ? weatherInput.value.trim() : '';
+            fetchLocationSuggestions(initialQuery || currentWeatherCity || 'Deoband');
+
             setTimeout(() => {
-                setWeatherModalFocus(0);
-            }, 50);
+                if (weatherInput) {
+                    setWeatherModalElementFocus(weatherInput);
+                } else {
+                    const firstItem = document.querySelector('#weather-modal .modal-item');
+                    if (firstItem) setWeatherModalElementFocus(firstItem);
+                }
+            }, 60);
         };
 
         window.closeWeatherModal = function() {
             isWeatherModalOpen = false;
-            weatherModal.classList.add('opacity-0', 'pointer-events-none');
-            weatherBox.classList.remove('scale-100');
-            weatherBox.classList.add('scale-95');
+            if (weatherModal) {
+                weatherModal.classList.add('opacity-0', 'pointer-events-none');
+                weatherModal.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+            if (weatherBox) {
+                weatherBox.classList.remove('scale-100');
+                weatherBox.classList.add('scale-95');
+            }
             document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
+            activeWeatherModalElement = null;
             if (document.activeElement && typeof document.activeElement.blur === 'function') {
                 document.activeElement.blur();
             }
@@ -1182,51 +1678,50 @@
             if (btnW) setFocus(btnW);
         };
 
-        cityPills.forEach((btn, idx) => {
-            btn.addEventListener('click', () => {
-                const city = btn.getAttribute('data-city');
-                currentWeatherCity = city;
-                fetchLiveWeather(city);
-                closeWeatherModal();
-            });
-            btn.addEventListener('focus', () => {
-                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
-                btn.classList.add('focused');
-                currentWeatherModalIndex = idx;
-            });
-        });
-
+        // Live input typing suggestions (debounced 250ms)
         if (weatherInput) {
+            weatherInput.addEventListener('input', () => {
+                if (suggestionDebounceTimer) clearTimeout(suggestionDebounceTimer);
+                suggestionDebounceTimer = setTimeout(() => {
+                    fetchLocationSuggestions(weatherInput.value);
+                }, 250);
+            });
+            weatherInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
+                    e.preventDefault();
+                    fetchLocationSuggestions(weatherInput.value);
+                }
+            });
             weatherInput.addEventListener('focus', () => {
-                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
-                weatherInput.classList.add('focused');
-                currentWeatherModalIndex = 6;
+                setWeatherModalElementFocus(weatherInput);
             });
         }
 
         if (btnSaveWeather) {
             btnSaveWeather.addEventListener('click', () => {
                 const val = weatherInput ? weatherInput.value.trim() : '';
-                if (val) {
-                    currentWeatherCity = val;
-                    fetchLiveWeather(val);
-                    if (weatherInput) weatherInput.value = '';
-                }
-                closeWeatherModal();
+                fetchLocationSuggestions(val || currentWeatherCity);
             });
             btnSaveWeather.addEventListener('focus', () => {
-                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
-                btnSaveWeather.classList.add('focused');
-                currentWeatherModalIndex = 7;
+                setWeatherModalElementFocus(btnSaveWeather);
             });
         }
+
+        cityPills.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const city = btn.getAttribute('data-city');
+                if (weatherInput) weatherInput.value = city;
+                fetchLocationSuggestions(city);
+            });
+            btn.addEventListener('focus', () => {
+                setWeatherModalElementFocus(btn);
+            });
+        });
 
         if (weatherClose) {
             weatherClose.addEventListener('click', closeWeatherModal);
             weatherClose.addEventListener('focus', () => {
-                document.querySelectorAll('#weather-modal .modal-item').forEach(item => item.classList.remove('focused'));
-                weatherClose.classList.add('focused');
-                currentWeatherModalIndex = 8;
+                setWeatherModalElementFocus(weatherClose);
             });
         }
 
@@ -1400,6 +1895,10 @@
 
         // GLOBAL HANDLER FOR FIRE TV REMOTE PHYSICAL BACK BUTTON
         window.handleBackKey = function() {
+            if (isAllAppsModalOpen) {
+                closeAllAppsModal();
+                return true;
+            }
             if (isLauncherSettingsOpen) {
                 closeLauncherSettings();
                 return true;
@@ -1514,18 +2013,16 @@
                 }
                 return;
             }
-            if (action === 'all_apps') {
-                if (window.Android && typeof window.Android.openFireTvAppsGrid === 'function') {
-                    window.Android.openFireTvAppsGrid();
-                } else if (window.Android && typeof window.Android.openAllApps === 'function') {
-                    window.Android.openAllApps();
-                } else if (window.Android && typeof window.Android.launchIntent === 'function') {
-                    window.Android.launchIntent("android.settings.MANAGE_APPLICATIONS_SETTINGS");
-                }
+            if (action === 'show_all_apps' || action === 'all_apps') {
+                openAllAppsModal();
                 return;
             }
 
             if (pkg) {
+                recordRecentApp(pkg);
+                if (isAllAppsModalOpen) {
+                    closeAllAppsModal();
+                }
                 if (window.Android && typeof window.Android.launchApp === 'function') {
                     window.Android.launchApp(pkg);
                 }
@@ -1549,7 +2046,190 @@
             }
         }
 
-        // --- 9. DYNAMIC "ALL INSTALLED APPS" SECTION LOADER (FULL-CARD ORIGINAL APP ICONS) ---
+        // --- 9. DYNAMIC "ALL INSTALLED APPS" SECTION LOADER & RECENTS ENGINE ---
+        let cachedAllInstalledAppsList = [];
+        let isAllAppsModalOpen = false;
+
+        function recordRecentApp(pkg) {
+            if (!pkg || pkg === 'settings' || pkg === 'ram' || pkg === 'show_all_apps') return;
+            try {
+                let recents = JSON.parse(localStorage.getItem('onfire_recent_apps') || '[]');
+                recents = recents.filter(p => p !== pkg);
+                recents.unshift(pkg);
+                if (recents.length > 10) recents = recents.slice(0, 10);
+                localStorage.setItem('onfire_recent_apps', JSON.stringify(recents));
+            } catch (e) {}
+            if (window.Android && typeof window.Android.recordRecentApp === 'function') {
+                try { window.Android.recordRecentApp(pkg); } catch (e) {}
+            }
+        }
+
+        function getRecentAppsList() {
+            let list = [];
+            if (window.Android && typeof window.Android.getRecentApps === 'function') {
+                try {
+                    const raw = window.Android.getRecentApps();
+                    if (raw && raw.trim().startsWith('[')) list = JSON.parse(raw);
+                } catch (e) {}
+            }
+            if (!list || list.length === 0) {
+                try {
+                    list = JSON.parse(localStorage.getItem('onfire_recent_apps') || '[]');
+                } catch (e) {}
+            }
+            if (!list || list.length === 0) {
+                list = ['com.amazon.firetv.youtube', 'com.amazon.avod', 'org.smarttube.stable', 'in.startv.hotstar'];
+            }
+            return list;
+        }
+
+        function createAppCard(app) {
+            const card = document.createElement('div');
+            card.setAttribute('tabindex', '0');
+            card.className = 'tv-focusable app-tile-wrapper';
+            card.setAttribute('data-app', app.name);
+            if (app.pkg) card.setAttribute('data-package', app.pkg);
+            if (app.action) card.setAttribute('data-action', app.action);
+
+            let tileData = { hasBanner: false, banner: '', icon: '', bgColor: '#1E242B', textColor: '#FFFFFF' };
+            if (app.pkg && window.Android && typeof window.Android.getAppTileData === 'function') {
+                try {
+                    const raw = window.Android.getAppTileData(app.pkg);
+                    if (raw && raw.trim().startsWith('{')) {
+                        tileData = JSON.parse(raw);
+                    }
+                } catch (e) {}
+            }
+
+            const isPrime = app.isPrimeVideo || app.pkg === 'com.amazon.avod' || app.pkg === 'com.amazon.amazonvideo.livingroom' || app.name === 'Prime Video';
+
+            let innerContent = '';
+            if (app.action === 'show_all_apps') {
+                innerContent = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-3 select-none" style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);">
+                        <div class="w-12 h-12 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center mb-2 shadow-lg">
+                            <i class="fa-solid fa-shapes text-2xl text-sky-400 drop-shadow"></i>
+                        </div>
+                        <span class="text-[12px] font-black uppercase tracking-wider text-sky-200">Show All Apps</span>
+                    </div>
+                `;
+            } else if (app.action === 'launcher_settings') {
+                innerContent = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-3 select-none" style="background: linear-gradient(135deg, #242936 0%, #151821 100%);">
+                        <i class="fa-solid fa-gear text-5xl text-sky-400 drop-shadow-lg mb-2"></i>
+                        <span class="text-[12px] font-medium leading-tight text-center truncate max-w-[90%] text-white">Settings</span>
+                    </div>
+                `;
+            } else if (app.action === 'clear_ram') {
+                innerContent = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-3 select-none" style="background: linear-gradient(135deg, #064E3B 0%, #03281E 100%);">
+                        <i id="ram-icon" class="fa-solid fa-bolt text-3xl text-emerald-300 drop-shadow mb-1.5"></i>
+                        <span id="ram-title" class="text-[12px] font-medium leading-tight text-center truncate max-w-[90%] text-emerald-200">Clear RAM</span>
+                    </div>
+                `;
+            } else if (isPrime && (!tileData.hasBanner || !tileData.banner)) {
+                // Dedicated 16:9 Prime Video Official Banner
+                innerContent = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-3 select-none" style="background: radial-gradient(circle at 50% 35%, #002B49 0%, #061528 65%, #020812 100%);">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="text-2xl font-black text-white tracking-tight" style="font-family: 'Inter', -apple-system, sans-serif; letter-spacing: -0.5px;">prime video</span>
+                            <svg class="w-24 h-4 mt-0.5" viewBox="0 0 100 16" fill="none">
+                                <path d="M 8 3 Q 50 16 90 4" stroke="#00A8E1" stroke-width="3.2" stroke-linecap="round"/>
+                                <polygon points="88,1 96,5 91,10" fill="#00A8E1"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            } else if (tileData.hasBanner && tileData.banner) {
+                // 1. Native TV Banner Available: Render full-bleed using CenterCrop to fill the entire 16:9 card
+                innerContent = `<img src="${tileData.banner}" class="w-full h-full object-cover select-none pointer-events-none" alt="${app.name}" />`;
+            } else {
+                // 2. No Banner (Standard Square Icon Fallback): Dynamically construct 16:9 banner card
+                const bgFill = tileData.bgColor || '#1E242B';
+                const textColor = tileData.textColor || '#FFFFFF';
+                let iconHtml = '';
+                if (tileData.icon) {
+                    iconHtml = `<img src="${tileData.icon}" style="width: 38px; height: 38px; object-fit: contain;" class="drop-shadow-md select-none pointer-events-none" />`;
+                } else {
+                    const letter = (app.name[0] || 'A').toUpperCase();
+                    iconHtml = `<div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${letter}</div>`;
+                }
+
+                innerContent = `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-3 select-none" style="background: ${bgFill};">
+                        ${iconHtml}
+                        <span class="mt-2 text-[12px] font-medium leading-tight text-center truncate max-w-[90%]" style="color: ${textColor};">${app.name}</span>
+                    </div>
+                `;
+            }
+
+            // 3. 16:9 Card with Centered App Name below the tile
+            card.innerHTML = `
+                <div class="tile-banner-card">
+                    ${innerContent}
+                </div>
+                <div class="tile-banner-label">
+                    ${app.name}
+                </div>
+            `;
+
+            card.addEventListener('focus', () => {
+                if (currentActiveElement !== card) {
+                    if (currentActiveElement) currentActiveElement.classList.remove('focused');
+                    currentActiveElement = card;
+                    card.classList.add('focused');
+                    playTvSound('focus');
+                }
+            });
+
+            card.addEventListener('click', () => {
+                if (!isWeatherModalOpen && !isLauncherSettingsOpen) {
+                    executeAction(card);
+                }
+            });
+
+            return card;
+        }
+
+        function openAllAppsModal() {
+            isAllAppsModalOpen = true;
+            const modal = document.getElementById('all-apps-modal');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+            }
+            renderModalAllApps();
+            setTimeout(() => {
+                const firstCard = document.querySelector('#modal-all-apps-grid .app-tile-wrapper');
+                if (firstCard) setFocus(firstCard);
+            }, 100);
+        }
+
+        function closeAllAppsModal() {
+            isAllAppsModalOpen = false;
+            const modal = document.getElementById('all-apps-modal');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+            const showAllBtn = document.querySelector('#all-apps-grid [data-action="show_all_apps"]');
+            if (showAllBtn) {
+                setFocus(showAllBtn);
+            } else if (cachedAllApps.length > 0) {
+                setFocus(cachedAllApps[0]);
+            }
+        }
+
+        function renderModalAllApps() {
+            const modalGrid = document.getElementById('modal-all-apps-grid');
+            if (!modalGrid) return;
+            modalGrid.innerHTML = '';
+            cachedAllInstalledAppsList.forEach(app => {
+                const card = createAppCard(app);
+                modalGrid.appendChild(card);
+            });
+        }
+
         function renderAllInstalledApps() {
             const grid = document.getElementById('all-apps-grid');
             if (!grid) return;
@@ -1568,227 +2248,76 @@
                 }
             }
 
-            // High-priority curated list of streaming & utility apps with full-card original iconography (as in user screenshots)
-            const curatedApps = [
-                // ROW 1
-                {
-                    pkg: 'in.startv.hotstar',
-                    name: 'JioHotstar',
-                    bg: 'linear-gradient(90deg, #00B2FE 0%, #0088FF 40%, #D81B60 100%)',
-                    iconSvg: `<div class="flex items-center space-x-2 select-none"><svg class="h-9 w-9 text-white drop-shadow" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 7.5H22l-6 4.5 2.5 7.5L12 15l-6.5 4.5 2.5-7.5-6-4.5h7.5z"/></svg><span class="text-2xl font-black text-white tracking-tight drop-shadow-md">JioHotstar</span></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'app.netmirror.newtv',
-                    name: 'Net Mirror TV',
-                    bg: '#0B0D13',
-                    iconSvg: `<div class="flex items-center space-x-2 select-none"><div class="bg-red-600 text-white font-black text-[11px] px-2 py-0.5 rounded tracking-wider shadow">NEW</div><div class="flex flex-col leading-tight"><div class="flex items-baseline space-x-1"><span class="text-xl font-black text-red-500 tracking-wider">NET</span><span class="text-[10px] font-black text-emerald-400">TV</span></div><span class="text-lg font-black text-red-500 tracking-widest -mt-1">MIRROR</span></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.amazon.firetv.youtube',
-                    name: 'YouTube',
-                    bg: '#FFFFFF',
-                    iconSvg: `<div class="flex items-center space-x-2 select-none"><svg class="h-9 w-auto drop-shadow-sm" viewBox="0 0 68 48"><path d="M66.5 7.7c-.8-2.9-2.5-5.4-5.4-6.2C55.8.1 34 0 34 0S12.2.1 6.9 1.5C4 2.3 2.3 4.8 1.5 7.7.1 13 0 24 0 24s.1 11 1.5 16.3c.8 2.9 2.5 5.4 5.4 6.2 5.3 1.4 27.1 1.5 27.1 1.5s21.8-.1 27.1-1.5c2.9-.8 4.6-3.3 5.4-6.2C67.9 35 68 24 68 24s-.1-11-1.5-16.3z" fill="#FF0000"/><polygon points="27,14 45,24 27,34" fill="#FFFFFF"/></svg><span class="text-2xl font-black text-black tracking-tight">YouTube</span></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'tv.playbox.android',
-                    name: 'PLAYBOXTV',
-                    bg: '#FFFFFF',
-                    iconSvg: `<div class="flex items-center space-x-2.5 select-none"><svg class="h-10 w-10 shrink-0" viewBox="0 0 100 100"><polygon points="50,5 90,25 90,75 50,95 10,75 10,25" fill="#E50914"/><polygon points="40,30 70,50 40,70" fill="#FFFFFF"/></svg><div class="flex flex-col text-left"><span class="text-xl font-black text-gray-900 tracking-tight leading-none">PLAYBOX<span class="text-red-600">TV</span></span><span class="text-[9px] font-bold text-gray-500 tracking-tight mt-0.5">Give Wings to Entertainment</span></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.background.apps',
-                    name: 'Background Apps & Process List',
-                    bg: '#0A111E',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none text-center px-2"><span class="text-base font-black text-white leading-tight">Background</span><span class="text-xs font-semibold text-gray-300">Apps & Process List</span><div class="flex items-center justify-center space-x-1 text-sky-400 mt-1"><svg class="w-16 h-4" viewBox="0 0 80 20" fill="none"><path d="M0 10 H20 L25 2 L32 18 L38 6 L44 14 L48 10 H65" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M72 10 A3 3 0 1 0 72 7 A3 3 0 1 0 72 10" fill="#F43F5E"/></svg></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.esaba.downloader',
-                    name: 'Downloader',
-                    bg: '#E88C00',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><svg class="h-12 w-12 drop-shadow-md" viewBox="0 0 64 64" fill="none"><path d="M12 6 C12 3 14 1 17 1 L32 1 C48 1 56 11 56 32 C56 53 48 63 32 63 L17 63 C14 63 12 61 12 58 Z" fill="#FFFFFF"/><path d="M30 14 L30 36 L21 27 L16 32 L32 48 L48 32 L43 27 L34 36 L34 14 Z" fill="#E88C00"/></svg><span class="text-sm font-black text-white tracking-wide mt-1 drop-shadow">Downloader</span></div>`,
-                    hideLabel: true
-                },
-
-                // ROW 2
-                {
-                    pkg: 'home.on.fire',
-                    name: 'Home on Fire',
-                    bg: '#E50914',
-                    iconSvg: `<div class="flex items-center space-x-2.5 select-none px-3"><div class="w-12 h-12 flex items-center justify-center text-white text-3xl"><i class="fa-solid fa-house-fire drop-shadow-md"></i></div><div class="flex flex-col text-left leading-none font-black text-white text-lg tracking-tight"><span>Home</span><span class="text-sm font-bold opacity-90 my-0.5">on</span><span>Fire</span></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'org.localsend.localsend_app',
-                    name: 'LocalSend',
-                    bg: '#EBF8FF',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><svg class="h-11 w-11" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="#00B4D8" stroke-width="4" stroke-dasharray="6 4"/><circle cx="24" cy="24" r="7" fill="#00B4D8"/></svg><span class="text-base font-black text-slate-800 tracking-tight mt-1">LocalSend</span></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'music.and.more',
-                    name: 'Music & More',
-                    bg: '#0C1322',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center mb-1 shadow-lg"><svg class="w-7 h-7 text-cyan-400" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="8" width="3" height="8" rx="1.5"/><rect x="7" y="4" width="3" height="16" rx="1.5"/><rect x="12" y="6" width="3" height="12" rx="1.5"/><rect x="17" y="2" width="3" height="20" rx="1.5"/><rect x="22" y="9" width="3" height="6" rx="1.5"/></svg></div><span class="text-xs font-black text-white tracking-wide">Music & More</span></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.amazon.avod',
-                    name: 'Prime Video',
-                    bg: '#00A8E1',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><span class="text-2xl font-black text-white tracking-tight">prime video</span><svg class="w-28 h-4 -mt-0.5" viewBox="0 0 140 20" fill="none"><path d="M10 6 C50 20 90 20 130 6" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/><polygon points="128,4 135,7 132,13" fill="#FFFFFF"/></svg></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'org.smarttube.stable',
-                    name: 'SmartTube',
-                    bg: '#4A5568',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><div class="w-14 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg"><span class="text-white font-black text-2xl tracking-tighter">S</span></div><div class="w-8 h-1 bg-white/40 rounded-full mt-1.5"></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.onemainstream.sonyliv.android',
-                    name: 'Sony LIV',
-                    bg: 'linear-gradient(135deg, #10081C 0%, #170C2A 60%, #4A0E4E 100%)',
-                    iconSvg: `<div class="flex flex-col items-center justify-center select-none"><span class="text-[10px] font-black text-white tracking-[0.25em] mb-0.5 opacity-90">SONY</span><div class="px-4 py-0.5 rounded-lg flex items-center justify-center shadow-xl" style="background: linear-gradient(90deg, #FF5722 0%, #E91E63 40%, #9C27B0 75%, #00BCD4 100%);"><span class="text-lg font-black text-white">liv</span></div></div>`,
-                    hideLabel: true
-                },
-
-                // ROW 3
-                {
-                    pkg: 'com.zee5.amazon',
-                    name: 'ZEE5',
-                    bg: 'linear-gradient(135deg, #1B2130 0%, #0D111A 100%)',
-                    iconSvg: `<div class="flex items-center space-x-3 select-none"><span class="text-3xl">🏆</span><div class="flex items-baseline space-x-0.5"><span class="text-3xl font-black text-white tracking-tight">Z</span><span class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-amber-400 via-pink-500 to-indigo-400">5</span></div></div>`,
-                    hideLabel: false
-                },
-                {
-                    pkg: 'settings',
-                    name: 'Settings',
-                    action: 'launcher_settings',
-                    bg: 'linear-gradient(135deg, #242936 0%, #151821 100%)',
-                    iconSvg: `<svg class="h-14 w-14 drop-shadow-2xl select-none" viewBox="0 0 100 100"><defs><linearGradient id="macGearGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFFFFF" /><stop offset="45%" stop-color="#CBD5E1" /><stop offset="100%" stop-color="#64748B" /></linearGradient><linearGradient id="macGearInner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#334155" /><stop offset="100%" stop-color="#0F172A" /></linearGradient><filter id="macGearShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity="0.7"/></filter></defs><g filter="url(#macGearShadow)"><circle cx="50" cy="50" r="37" fill="url(#macGearGrad)"/><rect x="44" y="6" width="12" height="11" rx="2.5" fill="url(#macGearGrad)"/><rect x="44" y="83" width="12" height="11" rx="2.5" fill="url(#macGearGrad)"/><rect x="6" y="44" width="11" height="12" rx="2.5" fill="url(#macGearGrad)"/><rect x="83" y="44" width="11" height="12" rx="2.5" fill="url(#macGearGrad)"/><rect x="18" y="18" width="12" height="11" rx="2.5" transform="rotate(45 23.5 23.5)" fill="url(#macGearGrad)"/><rect x="71" y="71" width="12" height="11" rx="2.5" transform="rotate(45 76.5 76.5)" fill="url(#macGearGrad)"/><rect x="71" y="18" width="12" height="11" rx="2.5" transform="rotate(-45 76.5 23.5)" fill="url(#macGearGrad)"/><rect x="18" y="71" width="12" height="11" rx="2.5" transform="rotate(-45 23.5 76.5)" fill="url(#macGearGrad)"/><circle cx="50" cy="50" r="22" fill="url(#macGearInner)"/><circle cx="50" cy="50" r="11" fill="url(#macGearGrad)"/><circle cx="50" cy="50" r="5" fill="#0F172A"/></g></svg>`,
-                    hideLabel: false
-                },
-                {
-                    pkg: 'com.mxtech.videoplayer.ad',
-                    name: 'MXPLAYER TV',
-                    bg: '#00B4D8',
-                    iconSvg: `<div class="flex items-center space-x-2 select-none px-2"><div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md"><i class="fa-solid fa-play text-[#00B4D8] text-base ml-0.5"></i></div><span class="text-lg font-black text-white tracking-wider">MXPLAYER<span class="text-xs ml-1 bg-black/20 px-1 py-0.5 rounded">TV</span></span></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'com.onfire.launcher',
-                    name: 'ON FIRE',
-                    bg: '#0D111A',
-                    iconSvg: `<div class="flex items-center space-x-2.5 select-none px-2"><div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-900 to-indigo-950 border border-blue-400/40 flex items-center justify-center shadow-lg"><i class="fa-solid fa-fire text-amber-400 text-xl drop-shadow"></i></div><div class="flex flex-col text-left leading-tight"><span class="text-xs font-black text-white tracking-wider">ON FIRE</span><span class="text-[9px] font-black text-red-500 tracking-tight">LEANBACK LAUNCHER</span><span class="text-[8px] font-bold text-gray-400">Google TV | Android TV | Fire TV</span></div></div>`,
-                    hideLabel: true
-                },
-                {
-                    pkg: 'ram',
-                    name: 'Clear RAM',
-                    action: 'clear_ram',
-                    bg: 'linear-gradient(135deg, #064E3B 0%, #03281E 100%)',
-                    iconSvg: `<div id="ram-icon-box" class="w-12 h-12 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/30 flex items-center justify-center shadow-xl"><i id="ram-icon" class="fa-solid fa-bolt text-2xl text-emerald-300 drop-shadow"></i></div>`,
-                    hideLabel: false
-                },
-                {
-                    pkg: 'com.netflix.ninja',
-                    name: 'Netflix',
-                    bg: '#FFFFFF',
-                    iconSvg: `<span class="text-2xl font-black tracking-widest text-[#E50914] select-none" style="font-family: 'Helvetica Neue', Arial, sans-serif; letter-spacing: 4px; transform: scaleY(1.15);">NETFLIX</span>`,
-                    hideLabel: true
+            let allAppsList = [];
+            if (installed && installed.length > 0) {
+                allAppsList = installed.map(app => ({
+                    pkg: app.pkg,
+                    name: app.name || 'Application'
+                }));
+                if (!allAppsList.some(a => a.pkg === 'com.amazon.avod' || a.pkg === 'com.amazon.amazonvideo.livingroom' || a.name === 'Prime Video')) {
+                    allAppsList.push({ pkg: 'com.amazon.avod', name: 'Prime Video', isPrimeVideo: true });
                 }
-            ];
-
-            const curatedMap = {};
-            curatedApps.forEach(a => { if (a.pkg) curatedMap[a.pkg.toLowerCase()] = true; });
-
-            // Add any additional user installed apps that aren't already curated
-            const extraApps = [];
-            if (Array.isArray(installed)) {
-                installed.forEach(app => {
-                    const p = (app.pkg || '').toLowerCase();
-                    if (!p || curatedMap[p]) return;
-                    if (p.includes('youtube') || p.includes('hotstar') || p.includes('prime') || p.includes('netflix') || p.includes('sonyliv') || p.includes('zee5') || p.includes('downloader') || p.includes('localsend')) return;
-
-                    let iconSrc = '';
-                    if (window.Android && typeof window.Android.getAppIcon === 'function') {
-                        try {
-                            iconSrc = window.Android.getAppIcon(app.pkg);
-                        } catch (e) {}
-                    }
-
-                    extraApps.push({
-                        pkg: app.pkg,
-                        name: app.name || 'Application',
-                        iconSrc: iconSrc,
-                        bg: 'linear-gradient(135deg, #1E2330 0%, #12151D 100%)',
-                        hideLabel: false
-                    });
-                });
+            } else {
+                allAppsList = [
+                    { pkg: 'com.amazon.firetv.youtube', name: 'YouTube' },
+                    { pkg: 'com.amazon.avod', name: 'Prime Video', isPrimeVideo: true },
+                    { pkg: 'org.smarttube.stable', name: 'SmartTube' },
+                    { pkg: 'in.startv.hotstar', name: 'JioHotstar' },
+                    { pkg: 'app.netmirror.newtv', name: 'Net Mirror TV' },
+                    { pkg: 'playboxtv.tv.firestick.in', name: 'PLAYBOXTV' },
+                    { pkg: 'com.esaba.downloader', name: 'Downloader' },
+                    { pkg: 'org.localsend.localsend_app', name: 'LocalSend' },
+                    { pkg: 'com.onemainstream.sonyliv.android', name: 'Sony LIV' },
+                    { pkg: 'com.zee5.amazon', name: 'ZEE5' },
+                    { pkg: 'com.netflix.ninja', name: 'Netflix' }
+                ];
             }
 
-            const allToRender = curatedApps.concat(extraApps);
-            grid.innerHTML = '';
+            // Cache full list for "SHOW ALL APPS" screen
+            cachedAllInstalledAppsList = [
+                ...allAppsList,
+                { pkg: 'settings', name: 'Settings', action: 'launcher_settings' },
+                { pkg: 'ram', name: 'Clear RAM', action: 'clear_ram' }
+            ];
 
-            allToRender.forEach(app => {
-                const card = document.createElement('div');
-                card.setAttribute('tabindex', '0');
-                card.className = 'tv-focusable tv-card-rect glass-black-card cursor-pointer group flex flex-col items-center justify-center p-3 relative overflow-hidden';
-                card.setAttribute('data-app', app.name);
-                if (app.pkg) card.setAttribute('data-package', app.pkg);
-                if (app.action) card.setAttribute('data-action', app.action);
-                if (app.bg) card.style.background = app.bg;
-
-                let iconContent = '';
-                if (app.iconSvg) {
-                    iconContent = app.iconSvg;
-                } else if (app.iconSrc && app.iconSrc.trim()) {
-                    iconContent = `<img src="${app.iconSrc}" class="h-20 w-20 object-contain drop-shadow-2xl" onerror="this.outerHTML='<div class=\\'w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-2xl font-black text-white\\'>${(app.name[0]||'A').toUpperCase()}</div>';">`;
-                } else {
-                    const letter = (app.name[0] || 'A').toUpperCase();
-                    iconContent = `<div class="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-2xl font-black text-white shadow-xl">${letter}</div>`;
+            // Build Row 1: Top 4 Recently Opened Apps ending with "SHOW ALL APPS"
+            const recents = getRecentAppsList();
+            const topRecents = [];
+            recents.forEach(pkg => {
+                const found = allAppsList.find(a => a.pkg === pkg || (pkg === 'com.amazon.avod' && (a.pkg === 'com.amazon.avod' || a.name === 'Prime Video')));
+                if (found && !topRecents.includes(found) && topRecents.length < 4) {
+                    topRecents.push(found);
                 }
+            });
+            allAppsList.forEach(app => {
+                if (topRecents.length < 4 && !topRecents.includes(app)) {
+                    topRecents.push(app);
+                }
+            });
 
-                const titleId = app.action === 'clear_ram' ? 'id="ram-title"' : '';
+            const showAllAppsCard = {
+                pkg: 'show_all_apps',
+                name: 'Show All Apps',
+                action: 'show_all_apps'
+            };
 
-                // PURE FULL-CARD ORIGINAL ICON TILE (MATCHING APPLE TV / FIRE TV REFERENCE IMAGES)
-                card.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center select-none pointer-events-none">
-                        <div class="app-icon-box flex items-center justify-center w-full flex-1">
-                            ${iconContent}
-                        </div>
-                        ${app.hideLabel ? '' : `<span ${titleId} class="text-xs font-black text-white tracking-wide truncate max-w-[92%] mt-1 drop-shadow-md text-center">${app.name}</span>`}
-                    </div>
-                `;
+            const row1 = [...topRecents, showAllAppsCard];
+            const remainingApps = allAppsList.filter(app => !topRecents.includes(app));
+            remainingApps.push({ pkg: 'settings', name: 'Settings', action: 'launcher_settings' });
+            remainingApps.push({ pkg: 'ram', name: 'Clear RAM', action: 'clear_ram' });
 
-                card.addEventListener('focus', () => {
-                    if (currentActiveElement !== card) {
-                        if (currentActiveElement) currentActiveElement.classList.remove('focused');
-                        currentActiveElement = card;
-                        card.classList.add('focused');
-                        playTvSound('focus');
-                    }
-                });
+            const allToRender = [...row1, ...remainingApps];
 
-                card.addEventListener('click', () => {
-                    if (!isWeatherModalOpen && !isLauncherSettingsOpen) {
-                        executeAction(card);
-                    }
-                });
-
+            grid.innerHTML = '';
+            allToRender.forEach(app => {
+                const card = createAppCard(app);
                 grid.appendChild(card);
             });
 
             refreshNavCache();
         }
 
-        // --- 10. SPATIAL D-PAD NAVIGATION & DRAWER ENGINE (PERFECT FIXED CLOCK) ---
+        // --- 10. SPATIAL D-PAD NAVIGATION & DRAWER ENGINE ---
         let currentActiveElement = null;
         let cachedAllApps = [];
         let cachedHeaderProfile = null;
@@ -1815,7 +2344,7 @@
         function refreshNavCache() {
             cachedHeaderProfile = document.getElementById('profile-btn');
             cachedHeaderWeather = document.getElementById('btn-weather');
-            cachedAllApps = Array.from(document.querySelectorAll('#all-apps-grid .tv-focusable'));
+            cachedAllApps = Array.from(document.querySelectorAll('#all-apps-grid .app-tile-wrapper'));
         }
 
         function setFocus(el) {
@@ -1830,14 +2359,21 @@
             } catch (e) {}
             playTvSound('focus');
 
-            // If element is inside the bottom apps drawer, scroll drawer internally
+            // If element is inside the bottom apps drawer, scroll drawer internally smoothly
             const aIdx = cachedAllApps.indexOf(el);
             if (aIdx >= 0) {
                 const scrollBox = document.getElementById('apps-drawer-scroll');
                 if (scrollBox) {
                     const row = Math.floor(aIdx / 5);
-                    const targetY = row * 196;
+                    const targetY = row * 219;
                     scrollBox.scrollTo({ top: targetY, behavior: 'smooth' });
+                }
+            }
+
+            if (isAllAppsModalOpen) {
+                const modalScroll = document.getElementById('modal-apps-scroll');
+                if (modalScroll && el && modalScroll.contains(el)) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             }
         }
@@ -1882,115 +2418,167 @@
             return best;
         }
 
-        document.addEventListener('keydown', (e) => {
+        function processTvKey(keyCode, keyName, e) {
+            const isDown = keyCode === 20 || keyCode === 40 || keyName === 'ArrowDown';
+            const isUp = keyCode === 19 || keyCode === 38 || keyName === 'ArrowUp';
+            const isLeft = keyCode === 21 || keyCode === 37 || keyName === 'ArrowLeft';
+            const isRight = keyCode === 22 || keyCode === 39 || keyName === 'ArrowRight';
+            const isEnter = keyCode === 23 || keyCode === 66 || keyCode === 13 || keyCode === 160 || keyName === 'Enter';
+            const isBack = keyCode === 4 || keyCode === 27 || keyName === 'Escape' || keyName === 'Back' || keyName === 'GoBack';
+            const isMenu = keyCode === 82 || keyName === 'Menu';
+
+            if (e && typeof e.preventDefault === 'function') {
+                e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            }
+
+            // 0. All Apps Modal Navigation
+            if (isAllAppsModalOpen) {
+                if (isBack) {
+                    closeAllAppsModal();
+                    return;
+                }
+                const allModalCards = Array.from(document.querySelectorAll('#modal-all-apps-grid .app-tile-wrapper'));
+                const closeBtn = document.getElementById('all-apps-close-btn');
+                const curIdx = allModalCards.indexOf(currentActiveElement);
+
+                if (isRight) {
+                    if (currentActiveElement === closeBtn) {
+                        // stay
+                    } else if (curIdx >= 0 && curIdx < allModalCards.length - 1) {
+                        setFocus(allModalCards[curIdx + 1]);
+                    }
+                } else if (isLeft) {
+                    if (curIdx > 0) {
+                        setFocus(allModalCards[curIdx - 1]);
+                    }
+                } else if (isDown) {
+                    if (currentActiveElement === closeBtn) {
+                        if (allModalCards.length > 0) setFocus(allModalCards[0]);
+                    } else if (curIdx >= 0 && curIdx + 5 < allModalCards.length) {
+                        setFocus(allModalCards[curIdx + 5]);
+                    }
+                } else if (isUp) {
+                    if (curIdx >= 5) {
+                        setFocus(allModalCards[curIdx - 5]);
+                    } else if (curIdx >= 0 && curIdx < 5) {
+                        if (closeBtn) setFocus(closeBtn);
+                    }
+                } else if (isEnter) {
+                    if (currentActiveElement) currentActiveElement.click();
+                }
+                return;
+            }
+
             // A. Settings Modal Navigation
             if (isLauncherSettingsOpen) {
-                if (e.key === 'Escape' || e.keyCode === 4 || e.keyCode === 27 || e.key === 'Back' || e.key === 'GoBack' || e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                if (isBack || isLeft) {
                     closeLauncherSettings();
                     return;
                 }
-
-                if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
-                    e.preventDefault();
+                if (isDown) {
                     setLauncherSettingsFocus(currentSettingsIndex + 1);
-                } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
-                    e.preventDefault();
+                } else if (isUp) {
                     setLauncherSettingsFocus(currentSettingsIndex - 1);
-                } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                } else if (isEnter) {
                     const items = getLauncherSettingsItems();
                     if (items[currentSettingsIndex]) items[currentSettingsIndex].click();
                 }
                 return;
             }
 
-            // B. Weather Modal Navigation
+            // B. Weather Modal Navigation (Spatial 2D Dynamic Navigation)
             if (isWeatherModalOpen) {
-                if (e.key === 'Escape' || e.keyCode === 4 || e.keyCode === 27 || e.key === 'Back' || e.key === 'GoBack') {
-                    e.preventDefault();
-                    e.stopPropagation();
+                if (isBack) {
                     closeWeatherModal();
                     return;
                 }
-                const modalItems = Array.from(document.querySelectorAll('#weather-modal .modal-item'));
+                const modalItems = Array.from(document.querySelectorAll('#weather-modal .modal-item')).filter(el => {
+                    const rect = el.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0;
+                });
+                if (!modalItems.length) return;
 
-                if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
-                    e.preventDefault();
-                    if (currentWeatherModalIndex === 0 || currentWeatherModalIndex === 1) {
-                        setWeatherModalFocus(currentWeatherModalIndex + 1);
-                    } else if (currentWeatherModalIndex === 3 || currentWeatherModalIndex === 4) {
-                        setWeatherModalFocus(currentWeatherModalIndex + 1);
-                    } else if (currentWeatherModalIndex === 6) {
-                        setWeatherModalFocus(7);
-                    }
-                } else if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
-                    e.preventDefault();
-                    if (currentWeatherModalIndex === 1 || currentWeatherModalIndex === 2) {
-                        setWeatherModalFocus(currentWeatherModalIndex - 1);
-                    } else if (currentWeatherModalIndex === 4 || currentWeatherModalIndex === 5) {
-                        setWeatherModalFocus(currentWeatherModalIndex - 1);
-                    } else if (currentWeatherModalIndex === 7) {
-                        setWeatherModalFocus(6);
-                    }
-                } else if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
-                    e.preventDefault();
-                    if (currentWeatherModalIndex >= 0 && currentWeatherModalIndex <= 2) {
-                        setWeatherModalFocus(currentWeatherModalIndex + 3);
-                    } else if (currentWeatherModalIndex >= 3 && currentWeatherModalIndex <= 5) {
-                        setWeatherModalFocus(6);
-                    } else if (currentWeatherModalIndex === 6 || currentWeatherModalIndex === 7) {
-                        setWeatherModalFocus(8);
-                    }
-                } else if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
-                    e.preventDefault();
-                    if (currentWeatherModalIndex === 8) {
-                        setWeatherModalFocus(6);
-                    } else if (currentWeatherModalIndex === 6 || currentWeatherModalIndex === 7) {
-                        setWeatherModalFocus(4);
-                    } else if (currentWeatherModalIndex >= 3 && currentWeatherModalIndex <= 5) {
-                        setWeatherModalFocus(currentWeatherModalIndex - 3);
-                    }
-                } else if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                if (!activeWeatherModalElement || !modalItems.includes(activeWeatherModalElement)) {
+                    setWeatherModalElementFocus(modalItems[0]);
+                    return;
+                }
+
+                if (isEnter) {
                     playTvSound('select');
-                    const targetEl = modalItems[currentWeatherModalIndex] || document.activeElement;
-                    if (targetEl) targetEl.click();
+                    activeWeatherModalElement.click();
+                    return;
+                }
+
+                const r1 = activeWeatherModalElement.getBoundingClientRect();
+                let best = null;
+                let bestDist = Infinity;
+
+                modalItems.forEach(el => {
+                    if (el === activeWeatherModalElement) return;
+                    const r2 = el.getBoundingClientRect();
+                    let valid = false;
+                    let dist = 0;
+
+                    if (isDown && r2.top >= r1.bottom - 6) {
+                        valid = true;
+                        dist = (r2.top - r1.bottom) * 2 + Math.abs((r2.left + r2.right) / 2 - (r1.left + r1.right) / 2);
+                    } else if (isUp && r2.bottom <= r1.top + 6) {
+                        valid = true;
+                        dist = (r1.top - r2.bottom) * 2 + Math.abs((r2.left + r2.right) / 2 - (r1.left + r1.right) / 2);
+                    } else if (isRight && r2.left >= r1.right - 6) {
+                        valid = true;
+                        dist = (r2.left - r1.right) + Math.abs((r2.top + r2.bottom) / 2 - (r1.top + r1.bottom) / 2) * 2;
+                    } else if (isLeft && r2.right <= r1.left + 6) {
+                        valid = true;
+                        dist = (r1.left - r2.right) + Math.abs((r2.top + r2.bottom) / 2 - (r1.top + r1.bottom) / 2) * 2;
+                    }
+
+                    if (valid && dist < bestDist) {
+                        bestDist = dist;
+                        best = el;
+                    }
+                });
+
+                if (best) {
+                    setWeatherModalElementFocus(best);
                 }
                 return;
             }
 
-            // Menu Key (KeyCode 82) opens App Store for focused item
-            if (e.keyCode === 82 || e.key === 'Menu') {
-                e.preventDefault();
+            // Menu Key opens App Store for focused item
+            if (isMenu) {
                 openAppInStore(currentActiveElement);
                 return;
             }
 
+            // Ensure we have an active focused element
+            if (!currentActiveElement) {
+                if (cachedHeaderWeather) setFocus(cachedHeaderWeather);
+                else if (cachedAllApps.length > 0) setFocus(cachedAllApps[0]);
+            }
+
             // Enter / OK Button
-            if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23 || e.keyCode === 66) {
-                e.preventDefault();
+            if (isEnter) {
                 if (currentActiveElement) {
-                    executeAction(currentActiveElement);
+                    playTvSound('select');
+                    currentActiveElement.click();
                 }
                 return;
             }
 
-            // Fallback: If no element currently active, capture focus on any D-Pad press!
-            if (!currentActiveElement) {
-                if (cachedAllApps.length > 0) setFocus(cachedAllApps[0]);
-                else if (cachedHeaderProfile) setFocus(cachedHeaderProfile);
+            // Back button when drawer is open
+            if (isBack) {
+                if (isAppsDrawerOpen) {
+                    closeAppsDrawer();
+                }
                 return;
             }
 
             let aIdx = cachedAllApps.indexOf(currentActiveElement);
 
             // UP ARROW: Navigate up or slide down drawer to leave
-            if (e.key === 'ArrowUp' || e.keyCode === 38 || e.keyCode === 19) {
-                e.preventDefault();
+            if (isUp) {
                 if (isAppsDrawerOpen) {
                     if (aIdx >= 5) {
                         setFocus(cachedAllApps[aIdx - 5]);
@@ -1998,15 +2586,12 @@
                         // In top row of apps: close drawer, return to weather
                         closeAppsDrawer();
                     }
-                } else if (currentActiveElement === cachedHeaderWeather) {
-                    setFocus(cachedHeaderProfile);
                 }
                 return;
             }
 
             // DOWN ARROW: Open drawer from home or navigate rows
-            if (e.key === 'ArrowDown' || e.keyCode === 40 || e.keyCode === 20) {
-                e.preventDefault();
+            if (isDown) {
                 if (!isAppsDrawerOpen) {
                     // Pressing DOWN on Home Screen: Slide up the app section
                     openAppsDrawer();
@@ -2021,26 +2606,28 @@
             }
 
             // LEFT ARROW
-            if (e.key === 'ArrowLeft' || e.keyCode === 37 || e.keyCode === 21) {
-                e.preventDefault();
-                if (currentActiveElement === cachedHeaderWeather) {
-                    setFocus(cachedHeaderProfile);
-                } else if (aIdx > 0) {
+            if (isLeft) {
+                if (isAppsDrawerOpen && aIdx > 0) {
                     setFocus(cachedAllApps[aIdx - 1]);
                 }
                 return;
             }
 
             // RIGHT ARROW
-            if (e.key === 'ArrowRight' || e.keyCode === 39 || e.keyCode === 22) {
-                e.preventDefault();
-                if (currentActiveElement === cachedHeaderProfile) {
-                    if (cachedHeaderWeather) setFocus(cachedHeaderWeather);
-                } else if (aIdx !== -1 && aIdx < cachedAllApps.length - 1) {
+            if (isRight) {
+                if (isAppsDrawerOpen && aIdx !== -1 && aIdx < cachedAllApps.length - 1) {
                     setFocus(cachedAllApps[aIdx + 1]);
                 }
                 return;
             }
+        }
+
+        window.handleRemoteKey = function(keyCode) {
+            processTvKey(keyCode, null, null);
+        };
+
+        document.addEventListener('keydown', (e) => {
+            processTvKey(e.keyCode, e.key, e);
         });
 
         // --- 11. DEVICE ENVIRONMENT DETECTION ---

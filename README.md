@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/latest">
-    <img src="https://img.shields.io/badge/Release-v1.0.0-FF4B2B?style=for-the-badge&logo=rocket" alt="Latest Release" />
+    <img src="https://img.shields.io/badge/Release-v1.1.0-FF4B2B?style=for-the-badge&logo=rocket" alt="Latest Release" />
   </a>
   <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/stargazers">
     <img src="https://img.shields.io/badge/Fire%20OS-5%20%7C%206%20%7C%207%20%7C%208-FF9900?style=for-the-badge&logo=amazon" alt="Fire OS" />
@@ -32,16 +32,43 @@
 <br>
 
 <p align="center">
-  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/FiretvOS7/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk">
     <img src="https://img.shields.io/badge/Download_For_Fire_TV_Stick-FF9900?style=for-the-badge&logo=amazon&logoColor=white" height="38" alt="Download Fire TV Stick APK" />
   </a>
   &nbsp;&nbsp;
-  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/GoogleTV/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk">
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk">
     <img src="https://img.shields.io/badge/Download_For_Google_TV_%26_Android_TV-0080FF?style=for-the-badge&logo=google&logoColor=white" height="38" alt="Download Google TV APK" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk">
+    <img src="https://img.shields.io/badge/Download_Legacy_FireOS_5-6B7280?style=for-the-badge&logo=android&logoColor=white" height="38" alt="Download Legacy Fire OS 5 APK" />
   </a>
 </p>
 
 <br>
+
+---
+
+## 🌟 What's New in v1.1.0 (Changelog)
+
+- 🚀 **Zero-Lag & Zero-Flicker Hardware Engine**:
+  - Removed all artificial `translateZ(0)` and `will-change: transform` layer promotions that caused texture thrashing on entry-level Mali-G52 GPUs (Fire TV Stick Lite & 4K).
+  - Eliminated expensive CSS blur filters (`backdrop-filter`) across the launcher, ensuring locked **60 FPS** frame rates.
+  - Replaced JavaScript per-card opacity calculation loops (`requestAnimationFrame`) with pure hardware compositor scrolling.
+- 🌤️ **Enlarged High-Visibility Weather Widget**:
+  - Weather widget increased in size with a **44×44px** Google Weather icon, **4xl bold temperature**, and **2xl condition & city** typography for effortless 10-foot viewing.
+- 📌 **Pinned Stationary Applications Header**:
+  - The "Applications" and "Press UP to hide apps" navigation header is now pinned at the top and never scrolls up.
+- 🛡️ **Protected Weather & Clock Viewport**:
+  - Application cards are strictly clipped within the lower section (`top: 745px; overflow: hidden`) with a subtle hardware fade mask. **No cards or headers ever scroll above or block the weather widget and clock**.
+- 🔍 **Refined Spotlight Weather Search**:
+  - Cleaned up footer branding in the weather location modal to display only essential remote D-Pad navigation controls.
+- 📱 **Row 1 Recently Opened Apps & All Apps Grid**:
+  - The first row dynamically prioritizes your most recently launched apps and ends with **"Show All Apps"** to view all installed apps excluding system background packages.
+- 🎬 **Official Prime Video 16:9 Banner**:
+  - Dedicated custom Prime Video banner tile with official branding and gradient backdrop.
+- ⚙️ **Enhanced Settings Menu**:
+  - Upgraded to a clean, large gear icon and high-contrast list-style settings menu.
 
 ---
 
@@ -143,8 +170,9 @@ Free up RAM instantly before opening demanding streaming apps or cloud gaming se
 
 1. Install the **Downloader** app from the Amazon Appstore or Google Play Store.
 2. Open Downloader and enter the direct download URL for your device:
-   - **Fire TV Stick**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/FiretvOS7/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk`
-   - **Google TV / Android TV**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/GoogleTV/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk`
+   - **Fire TV Stick**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-FireTV-Stick-Lite-4K-FireOS7.apk`
+   - **Google TV / Android TV**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-Universal-GoogleTV-AndroidTV.apk`
+   - **Legacy Fire OS 5 / Android TV**: `https://github.com/sakhanamit/OnFire-Leanback-Launcher/releases/download/v1.1.0/OnFire-v1.0-Legacy-AndroidTV-FireOS5.apk`
 3. Click **Install**, then grant the install unknown apps permission.
 </details>
 

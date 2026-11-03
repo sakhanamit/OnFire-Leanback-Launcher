@@ -7,13 +7,18 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.Color;
 import android.util.Log;
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -24,6 +29,7 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -41,13 +47,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import android.content.SharedPreferences;
 
 public class MainActivity extends Activity {
 
     private WebView mWebView;
     private AudioManager mAudioManager;
+    private BroadcastReceiver mPackageReceiver;
+    private WebAppInterface mWebAppInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,13 +65,45 @@ public class MainActivity extends Activity {
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         getWindow().setBackgroundDrawable(new ColorDrawable(0xFF000000));
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemUI();
 
         mWebView = new WebView(this);
+        mWebView.setFocusable(true);
+        mWebView.setFocusableInTouchMode(true);
         setContentView(mWebView);
+        mWebView.requestFocus();
 
         configureWebView();
+        registerPackageReceiver();
         mWebView.loadUrl("file:///android_asset/index.html");
+    }
+
+    private void registerPackageReceiver() {
+        try {
+            mPackageReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (mWebAppInterface != null) {
+                        mWebAppInterface.clearCache();
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mWebView != null) {
+                                mWebView.evaluateJavascript("if (typeof renderAllInstalledApps === 'function') { renderAllInstalledApps(); }", null);
+                            }
+                        }
+                    });
+                }
+            };
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+            filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+            filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+            filter.addDataScheme("package");
+            registerReceiver(mPackageReceiver, filter);
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -75,14 +117,15 @@ public class MainActivity extends Activity {
     private void hideSystemUI() {
         View decor = getWindow().getDecorView();
         if (decor != null) {
-            decor.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            );
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            if (decor.getSystemUiVisibility() != flags) {
+                decor.setSystemUiVisibility(flags);
+            }
         }
     }
 
@@ -113,9 +156,16 @@ public class MainActivity extends Activity {
         }
 
         mWebView.setBackgroundColor(0xFF000000);
-        mWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        mWebView.setWebChromeClient(new WebChromeClient());
-        mWebView.addJavascriptInterface(new WebAppInterface(), "Android");
+        mWebView.setLayerType(View.LAYER_TYPE_NONE, null);
+        mWebView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage cm) {
+                Log.e("WebViewConsole", cm.message() + " [" + cm.sourceId() + ":" + cm.lineNumber() + "]");
+                return true;
+            }
+        });
+        mWebAppInterface = new WebAppInterface();
+        mWebView.addJavascriptInterface(mWebAppInterface, "Android");
 
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -177,6 +227,23 @@ public class MainActivity extends Activity {
                 }
             }
             return true; // CRITICAL: Consume both ACTION_DOWN and ACTION_UP so Android launcher activity never exits
+        }
+
+        // Direct hardware dispatch for TV D-Pad and Action buttons
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                keyCode == KeyEvent.KEYCODE_ENTER ||
+                keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER ||
+                keyCode == KeyEvent.KEYCODE_MENU) {
+                if (mWebView != null) {
+                    mWebView.evaluateJavascript("if (typeof handleRemoteKey === 'function') { handleRemoteKey(" + keyCode + "); }", null);
+                }
+                return true;
+            }
         }
 
         return super.dispatchKeyEvent(event);
@@ -254,6 +321,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void launchApp(final String targetApp) {
+            recordRecentApp(targetApp);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -270,7 +338,13 @@ public class MainActivity extends Activity {
                                 "com.liskovsoft.videomanager",        // SmartTube Legacy
                                 "com.google.android.youtube"          // Standard Android YouTube
                             );
-                        } else if ("com.amazon.avod".equals(targetApp) || "com.amazon.amazonvideo.livingroom".equals(targetApp) || "prime_video".equalsIgnoreCase(targetApp)) {
+                        } else if ("com.amazon.avod".equals(targetApp) || "com.amazon.amazonvideo.livingroom".equals(targetApp) || "prime_video".equalsIgnoreCase(targetApp) || "Prime Video".equalsIgnoreCase(targetApp)) {
+                            try {
+                                Intent primeWeb = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.primevideo.com"));
+                                primeWeb.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(primeWeb);
+                                return;
+                            } catch (Exception ignored) {}
                             candidatePackages = Arrays.asList(
                                 "com.amazon.amazonvideo.livingroom",   // Official Google TV & Android TV Prime Video
                                 "com.amazon.avod"                     // Official Fire TV Prime Video
@@ -468,38 +542,137 @@ public class MainActivity extends Activity {
         }
 
         // Live Google Weather Service Background Thread Engine
+        // Live Weather Service Background Thread Engine (Open-Meteo High Speed + wttr.in fallback)
         @JavascriptInterface
         public void fetchWeather(final String cityName) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        String queryCity = (cityName != null && !cityName.trim().isEmpty()) ? cityName.trim() : "Deoband";
+                        final String queryCity = (cityName != null && !cityName.trim().isEmpty()) ? cityName.trim() : "Deoband";
+                        
+                        // 1. Open-Meteo Geocoding
+                        String geoUrlStr = "https://geocoding-api.open-meteo.com/v1/search?name=" + URLEncoder.encode(queryCity, "UTF-8") + "&count=1&language=en&format=json";
+                        URL geoUrl = new URL(geoUrlStr);
+                        HttpURLConnection geoConn = (HttpURLConnection) geoUrl.openConnection();
+                        geoConn.setRequestMethod("GET");
+                        geoConn.setConnectTimeout(5000);
+                        geoConn.setReadTimeout(5000);
+                        geoConn.setRequestProperty("User-Agent", "OnFireTV/1.0 (Android TV)");
+
+                        if (geoConn.getResponseCode() == 200) {
+                            BufferedReader r = new BufferedReader(new InputStreamReader(geoConn.getInputStream()));
+                            StringBuilder sb = new StringBuilder();
+                            String line;
+                            while ((line = r.readLine()) != null) sb.append(line);
+                            r.close();
+
+                            JSONObject geoJson = new JSONObject(sb.toString());
+                            if (geoJson.has("results")) {
+                                JSONArray results = geoJson.getJSONArray("results");
+                                if (results.length() > 0) {
+                                    JSONObject first = results.getJSONObject(0);
+                                    double lat = first.getDouble("latitude");
+                                    double lon = first.getDouble("longitude");
+                                    final String resolvedCity = first.optString("name", queryCity);
+
+                                    // 2. Open-Meteo Live Forecast
+                                    String forecastUrlStr = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto";
+                                    URL forecastUrl = new URL(forecastUrlStr);
+                                    HttpURLConnection fConn = (HttpURLConnection) forecastUrl.openConnection();
+                                    fConn.setRequestMethod("GET");
+                                    fConn.setConnectTimeout(5000);
+                                    fConn.setReadTimeout(5000);
+                                    fConn.setRequestProperty("User-Agent", "OnFireTV/1.0 (Android TV)");
+
+                                    if (fConn.getResponseCode() == 200) {
+                                        BufferedReader r2 = new BufferedReader(new InputStreamReader(fConn.getInputStream()));
+                                        StringBuilder sb2 = new StringBuilder();
+                                        while ((line = r2.readLine()) != null) sb2.append(line);
+                                        r2.close();
+
+                                        JSONObject fJson = new JSONObject(sb2.toString());
+                                        if (fJson.has("current")) {
+                                            JSONObject curr = fJson.getJSONObject("current");
+                                            double tempC = curr.optDouble("temperature_2m", 24.0);
+                                            int humidity = curr.optInt("relative_humidity_2m", 60);
+                                            int code = curr.optInt("weather_code", 0);
+
+                                            final String tempStr = Math.round(tempC) + "°C";
+                                            final String humStr = humidity + "% Hum";
+                                            final String desc;
+                                            final String iconClass;
+
+                                            if (code == 0) {
+                                                desc = "Clear";
+                                                iconClass = "fa-solid fa-sun text-amber-400 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 1 && code <= 3) {
+                                                desc = (code == 3) ? "Overcast" : "Partly Cloudy";
+                                                iconClass = "fa-solid fa-cloud-sun text-amber-300 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 45 && code <= 48) {
+                                                desc = "Foggy";
+                                                iconClass = "fa-solid fa-smog text-gray-300 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 51 && code <= 67) {
+                                                desc = "Rainy";
+                                                iconClass = "fa-solid fa-cloud-showers-heavy text-blue-400 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 71 && code <= 77) {
+                                                desc = "Snow";
+                                                iconClass = "fa-solid fa-snowflake text-sky-200 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 80 && code <= 82) {
+                                                desc = "Showers";
+                                                iconClass = "fa-solid fa-cloud-rain text-blue-400 text-3xl md:text-4xl drop-shadow";
+                                            } else if (code >= 95) {
+                                                desc = "Thunderstorm";
+                                                iconClass = "fa-solid fa-cloud-bolt text-amber-400 text-3xl md:text-4xl drop-shadow";
+                                            } else {
+                                                desc = "Sunny";
+                                                iconClass = "fa-solid fa-cloud-sun text-amber-300 text-3xl md:text-4xl drop-shadow";
+                                            }
+
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (mWebView != null) {
+                                                        String js = "if (typeof applyWeatherUI === 'function') { applyWeatherUI("
+                                                                    + JSONObject.quote(resolvedCity) + ", "
+                                                                    + JSONObject.quote(tempStr) + ", "
+                                                                    + JSONObject.quote(desc) + ", "
+                                                                    + JSONObject.quote(humStr) + ", "
+                                                                    + JSONObject.quote(iconClass) + "); }";
+                                                        mWebView.evaluateJavascript(js, null);
+                                                    }
+                                                }
+                                            });
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Fallback to wttr.in if needed
                         String encoded = URLEncoder.encode(queryCity, "UTF-8");
                         URL url = new URL("https://wttr.in/" + encoded + "?format=j1");
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                         conn.setRequestMethod("GET");
-                        conn.setConnectTimeout(7000);
-                        conn.setReadTimeout(7000);
-                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android TV; GoogleWeatherService)");
+                        conn.setConnectTimeout(4000);
+                        conn.setReadTimeout(4000);
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android TV)");
 
                         if (conn.getResponseCode() == 200) {
                             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                             StringBuilder sb = new StringBuilder();
                             String line;
-                            while ((line = reader.readLine()) != null) {
-                                sb.append(line);
-                            }
+                            while ((line = reader.readLine()) != null) sb.append(line);
                             reader.close();
                             final String result = sb.toString();
-                            final String resolvedCity = queryCity;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     if (mWebView != null) {
                                         String js = "if (typeof window.onGoogleWeatherLoaded === 'function') { window.onGoogleWeatherLoaded(" 
                                                     + JSONObject.quote(result) + ", " 
-                                                    + JSONObject.quote(resolvedCity) + "); }";
+                                                    + JSONObject.quote(queryCity) + "); }";
                                         mWebView.evaluateJavascript(js, null);
                                     }
                                 }
@@ -508,6 +681,50 @@ public class MainActivity extends Activity {
                     } catch (Exception ignored) {}
                 }
             }).start();
+        }
+
+        @JavascriptInterface
+        public void promptCitySearch() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+                        builder.setTitle("Search Weather City");
+                        builder.setMessage("Enter city or location name:");
+
+                        final android.widget.EditText input = new android.widget.EditText(MainActivity.this);
+                        input.setSingleLine(true);
+                        input.setTextColor(0xFFFFFFFF);
+                        input.setHint("e.g. Deoband, Delhi, London, Mumbai");
+                        input.setHintTextColor(0xFFAAAAAA);
+                        builder.setView(input);
+
+                        builder.setPositiveButton("Search", new android.content.DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(android.content.DialogInterface dialog, int which) {
+                                String city = input.getText().toString().trim();
+                                if (!city.isEmpty()) {
+                                    fetchWeather(city);
+                                    if (mWebView != null) {
+                                        mWebView.evaluateJavascript("if (typeof setWeatherCity === 'function') { setWeatherCity(" + JSONObject.quote(city) + "); }", null);
+                                    }
+                                }
+                            }
+                        });
+                        builder.setNegativeButton("Cancel", null);
+
+                        android.app.AlertDialog dialog = builder.create();
+                        if (dialog.getWindow() != null) {
+                            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                        }
+                        dialog.show();
+                        input.requestFocus();
+                    } catch (Exception e) {
+                        Log.e("CitySearch", "Error showing city search dialog", e);
+                    }
+                }
+            });
         }
 
         @JavascriptInterface
@@ -751,37 +968,285 @@ public class MainActivity extends Activity {
             return String.valueOf(freedMb);
         }
 
+        private final java.util.Map<String, String> mTileDataCache = new java.util.concurrent.ConcurrentHashMap<String, String>();
+
+        public void clearCache() {
+            mTileDataCache.clear();
+        }
+
+        @JavascriptInterface
+        public void recordRecentApp(final String pkg) {
+            if (pkg == null || pkg.isEmpty() || "settings".equals(pkg) || "ram".equals(pkg) || "show_all_apps".equals(pkg)) return;
+            try {
+                SharedPreferences prefs = getSharedPreferences("onfire_recents", MODE_PRIVATE);
+                String raw = prefs.getString("recent_list", "");
+                List<String> list = new ArrayList<String>();
+                if (!raw.isEmpty()) {
+                    list.addAll(Arrays.asList(raw.split(",")));
+                }
+                list.remove(pkg);
+                list.add(0, pkg);
+                while (list.size() > 10) {
+                    list.remove(list.size() - 1);
+                }
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < list.size(); i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(list.get(i));
+                }
+                prefs.edit().putString("recent_list", sb.toString()).apply();
+            } catch (Exception ignored) {}
+        }
+
+        @JavascriptInterface
+        public String getRecentApps() {
+            try {
+                SharedPreferences prefs = getSharedPreferences("onfire_recents", MODE_PRIVATE);
+                String raw = prefs.getString("recent_list", "");
+                if (raw.isEmpty()) {
+                    return "[]";
+                }
+                JSONArray arr = new JSONArray();
+                String[] pkgs = raw.split(",");
+                for (String p : pkgs) {
+                    String trimmed = p.trim();
+                    if (!trimmed.isEmpty()) {
+                        arr.put(trimmed);
+                    }
+                }
+                return arr.toString();
+            } catch (Exception e) {
+                return "[]";
+            }
+        }
+
+        private Bitmap createPrimeVideoBannerBitmap() {
+            int w = 320;
+            int h = 180;
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+
+            // Deep Luxury Navy Gradient
+            Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            bgPaint.setShader(new android.graphics.LinearGradient(
+                0, 0, w, h,
+                new int[]{0xFF071322, 0xFF002244, 0xFF003366},
+                new float[]{0f, 0.55f, 1f},
+                android.graphics.Shader.TileMode.CLAMP
+            ));
+            canvas.drawRect(0, 0, w, h, bgPaint);
+
+            // Text "prime video"
+            Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            textPaint.setColor(Color.WHITE);
+            textPaint.setTextSize(30f);
+            textPaint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            float textY = h / 2f - 4;
+            canvas.drawText("prime video", w / 2f, textY, textPaint);
+
+            // Prime Video Cyan Smile Arrow
+            Paint smilePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            smilePaint.setColor(0xFF00A8E1);
+            smilePaint.setStyle(Paint.Style.STROKE);
+            smilePaint.setStrokeWidth(4.5f);
+            smilePaint.setStrokeCap(Paint.Cap.ROUND);
+
+            Path smilePath = new Path();
+            float startX = w / 2f - 65;
+            float endX = w / 2f + 65;
+            float smileY = textY + 16;
+            smilePath.moveTo(startX, smileY);
+            smilePath.quadTo(w / 2f, smileY + 18, endX, smileY + 2);
+            canvas.drawPath(smilePath, smilePaint);
+
+            // Arrow tip
+            Paint arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            arrowPaint.setColor(0xFF00A8E1);
+            arrowPaint.setStyle(Paint.Style.FILL);
+            Path arrowHead = new Path();
+            arrowHead.moveTo(endX - 3, smileY - 4);
+            arrowHead.lineTo(endX + 8, smileY + 3);
+            arrowHead.lineTo(endX + 1, smileY + 10);
+            arrowHead.close();
+            canvas.drawPath(arrowHead, arrowPaint);
+
+            return bitmap;
+        }
+
+        private String bitmapToBase64(Bitmap bitmap) {
+            if (bitmap == null) return "";
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 90, baos);
+            byte[] bytes = baos.toByteArray();
+            return "data:image/png;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
+        }
+
+        private Bitmap drawableToBitmap(Drawable drawable, int fallbackW, int fallbackH) {
+            if (drawable == null) return null;
+            if (drawable instanceof BitmapDrawable) {
+                return ((BitmapDrawable) drawable).getBitmap();
+            }
+            int w = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : fallbackW;
+            int h = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : fallbackH;
+            Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+            return bitmap;
+        }
+
+        private String extractDominantColorHex(Bitmap bitmap) {
+            if (bitmap == null) return "#1E242B";
+            try {
+                int w = bitmap.getWidth();
+                int h = bitmap.getHeight();
+                int stepX = Math.max(1, w / 20);
+                int stepY = Math.max(1, h / 20);
+
+                long totalR = 0, totalG = 0, totalB = 0;
+                int count = 0;
+
+                java.util.Map<Integer, Integer> buckets = new java.util.HashMap<Integer, Integer>();
+                int maxFreq = 0;
+                int dominantRgb = 0;
+
+                for (int y = 0; y < h; y += stepY) {
+                    for (int x = 0; x < w; x += stepX) {
+                        int pixel = bitmap.getPixel(x, y);
+                        int alpha = (pixel >>> 24);
+                        if (alpha < 128) continue; // skip transparent
+
+                        int r = (pixel >> 16) & 0xFF;
+                        int g = (pixel >> 8) & 0xFF;
+                        int b = pixel & 0xFF;
+
+                        int max = Math.max(r, Math.max(g, b));
+                        int min = Math.min(r, Math.min(g, b));
+                        int diff = max - min;
+
+                        // Skip near-black or washed-out gray
+                        if (max < 35 || diff < 20) {
+                            totalR += r; totalG += g; totalB += b;
+                            count++;
+                            continue;
+                        }
+
+                        int q = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+                        int freq = buckets.containsKey(q) ? buckets.get(q) + 1 : 1;
+                        buckets.put(q, freq);
+
+                        if (freq > maxFreq) {
+                            maxFreq = freq;
+                            dominantRgb = ((r & 0xF0) << 16) | ((g & 0xF0) << 8) | (b & 0xF0);
+                        }
+                    }
+                }
+
+                if (maxFreq > 0) {
+                    int r = (dominantRgb >> 16) & 0xFF;
+                    int g = (dominantRgb >> 8) & 0xFF;
+                    int b = dominantRgb & 0xFF;
+                    return String.format("#%02X%02X%02X", r, g, b);
+                } else if (count > 0) {
+                    int r = (int) (totalR / count);
+                    int g = (int) (totalG / count);
+                    int b = (int) (totalB / count);
+                    return String.format("#%02X%02X%02X", r, g, b);
+                }
+            } catch (Exception ignored) {}
+            return "#1E242B";
+        }
+
+        // 16:9 Banner vs Square Icon Fallback API with Color Extraction
+        @JavascriptInterface
+        public String getAppTileData(final String packageName) {
+            if (packageName == null || packageName.isEmpty()) return "{}";
+            if (mTileDataCache.containsKey(packageName)) {
+                return mTileDataCache.get(packageName);
+            }
+
+            try {
+                PackageManager pm = getPackageManager();
+                Drawable bannerDrawable = null;
+
+                // 1. Try Leanback/Activity banner
+                try {
+                    Intent lbIntent = pm.getLeanbackLaunchIntentForPackage(packageName);
+                    if (lbIntent != null && lbIntent.getComponent() != null) {
+                        bannerDrawable = pm.getActivityBanner(lbIntent.getComponent());
+                    }
+                } catch (Exception ignored) {}
+
+                // 2. Try Application Banner
+                if (bannerDrawable == null) {
+                    try {
+                        bannerDrawable = pm.getApplicationBanner(packageName);
+                    } catch (Exception ignored) {}
+                }
+
+                JSONObject res = new JSONObject();
+
+                if (bannerDrawable != null) {
+                    Bitmap bannerBm = drawableToBitmap(bannerDrawable, 320, 180);
+                    res.put("hasBanner", true);
+                    res.put("banner", bitmapToBase64(bannerBm));
+                    res.put("icon", "");
+                    res.put("bgColor", "#1E242B");
+                    res.put("textColor", "#FFFFFF");
+                } else if ("com.amazon.avod".equals(packageName) || "com.amazon.amazonvideo.livingroom".equals(packageName) || "prime_video".equalsIgnoreCase(packageName)) {
+                    Bitmap primeBm = createPrimeVideoBannerBitmap();
+                    res.put("hasBanner", true);
+                    res.put("banner", bitmapToBase64(primeBm));
+                    res.put("icon", "");
+                    res.put("bgColor", "#002B49");
+                    res.put("textColor", "#FFFFFF");
+                } else {
+                    Drawable iconDrawable = null;
+                    try {
+                        iconDrawable = pm.getApplicationIcon(packageName);
+                    } catch (Exception ignored) {}
+                    if (iconDrawable == null) {
+                        try {
+                            iconDrawable = pm.getDefaultActivityIcon();
+                        } catch (Exception ignored) {}
+                    }
+
+                    Bitmap iconBm = drawableToBitmap(iconDrawable, 96, 96);
+                    String dominantColorHex = extractDominantColorHex(iconBm);
+
+                    int r = Integer.parseInt(dominantColorHex.substring(1, 3), 16);
+                    int g = Integer.parseInt(dominantColorHex.substring(3, 5), 16);
+                    int b = Integer.parseInt(dominantColorHex.substring(5, 7), 16);
+                    double lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                    String textColor = lum > 165 ? "#111827" : "#FFFFFF";
+
+                    res.put("hasBanner", false);
+                    res.put("banner", "");
+                    res.put("icon", bitmapToBase64(iconBm));
+                    res.put("bgColor", dominantColorHex);
+                    res.put("textColor", textColor);
+                }
+
+                String jsonStr = res.toString();
+                mTileDataCache.put(packageName, jsonStr);
+                return jsonStr;
+            } catch (Exception e) {
+                return "{\"hasBanner\":false,\"banner\":\"\",\"icon\":\"\",\"bgColor\":\"#1E242B\",\"textColor\":\"#FFFFFF\"}";
+            }
+        }
+
         // Return exact official developer icon from installed package via PackageManager
         @JavascriptInterface
         public String getAppIcon(final String packageName) {
             try {
-                PackageManager pm = getPackageManager();
-                Drawable drawable = null;
-                try {
-                    drawable = pm.getApplicationBanner(packageName);
-                } catch (Exception ignored) {}
-                if (drawable == null) {
-                    drawable = pm.getApplicationIcon(packageName);
+                String tileJson = getAppTileData(packageName);
+                JSONObject obj = new JSONObject(tileJson);
+                if (obj.optBoolean("hasBanner", false)) {
+                    String b = obj.optString("banner", "");
+                    if (!b.isEmpty()) return b;
                 }
-                if (drawable != null) {
-                    Bitmap bitmap;
-                    if (drawable instanceof BitmapDrawable) {
-                        bitmap = ((BitmapDrawable) drawable).getBitmap();
-                    } else {
-                        int w = drawable.getIntrinsicWidth() > 0 ? drawable.getIntrinsicWidth() : 96;
-                        int h = drawable.getIntrinsicHeight() > 0 ? drawable.getIntrinsicHeight() : 96;
-                        bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-                        Canvas canvas = new Canvas(bitmap);
-                        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-                        drawable.draw(canvas);
-                    }
-                    if (bitmap != null) {
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 90, baos);
-                        byte[] bytes = baos.toByteArray();
-                        return "data:image/png;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
-                    }
-                }
+                return obj.optString("icon", "");
             } catch (Exception ignored) {}
             return "";
         }
@@ -940,8 +1405,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (mWebAppInterface != null) {
+            mWebAppInterface.clearCache();
+        }
         if (mWebView != null) {
             mWebView.onResume();
+            mWebView.evaluateJavascript("if (typeof renderAllInstalledApps === 'function') { renderAllInstalledApps(); }", null);
         }
     }
 
@@ -955,6 +1424,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (mPackageReceiver != null) {
+            try {
+                unregisterReceiver(mPackageReceiver);
+            } catch (Exception ignored) {}
+        }
         if (mWebView != null) {
             mWebView.destroy();
         }
